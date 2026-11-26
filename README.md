@@ -1,27 +1,28 @@
 # CH Beautyroom – Website
 
-Website für den CH Beautyroom in 26683 Ramsloh: Homestudio für
-Wimpernverlängerung, Lash- und Browlifting, Fineline-Tattoos und Ringana.
+One-Page-Website für ein Beauty-Homestudio in 26683 Ramsloh (Saterland):
+Wimpernverlängerung, Lash Lifting, Brow Lifting und Fineline-Tattoos.
 
-Die Seite kommt **ohne Cookie-Banner** aus: keine Google Fonts vom Server
-Dritter, kein Analytics, keine eingebetteten Instagram- oder Maps-Elemente,
-keine Datenbank. Beim Aufruf wird kein einziger Request an einen Drittanbieter
-gestellt.
+Die Seite kommt **ohne Cookie-Banner** aus: Schriften werden lokal
+ausgeliefert, es gibt kein Tracking, keine eingebetteten Karten und kein
+Instagram-Widget. Beim Aufruf geht kein einziger Request an einen
+Drittanbieter.
 
 ---
 
 ## Inhalt
 
 1. [Schnellstart](#schnellstart)
-2. [Was du ausfüllen musst](#was-du-ausfüllen-musst)
-3. [Umgebungsvariablen](#umgebungsvariablen)
-4. [Projektstruktur](#projektstruktur)
-5. [Inhalte ändern, ohne zu programmieren](#inhalte-ändern-ohne-zu-programmieren)
-6. [Das Buchungsmodul](#das-buchungsmodul)
+2. [Eigene Bilder einbinden](#eigene-bilder-einbinden)
+3. [Die Hero-Bildsequenz aus einem Handyvideo](#die-hero-bildsequenz-aus-einem-handyvideo)
+4. [Die Fokus-Ringe anpassen](#die-fokus-ringe-anpassen)
+5. [Inhalte ändern](#inhalte-ändern)
+6. [E-Mail-Versand: Resend oder Formspree](#e-mail-versand-resend-oder-formspree)
 7. [Deployment bei Vercel](#deployment-bei-vercel)
-8. [Google-Unternehmensprofil – der wichtigste SEO-Hebel](#google-unternehmensprofil--der-wichtigste-seo-hebel)
-9. [Rechtliches](#rechtliches)
+8. [Google-Unternehmensprofil](#google-unternehmensprofil)
+9. [Projektstruktur](#projektstruktur)
 10. [Technische Entscheidungen](#technische-entscheidungen)
+11. [Rechtliches](#rechtliches)
 
 ---
 
@@ -30,317 +31,305 @@ gestellt.
 Voraussetzung: Node.js 20 oder neuer.
 
 ```bash
-npm install          # Pakete installieren
-cp .env.example .env.local
-# .env.local öffnen und die Werte eintragen (siehe unten)
-npm run dev          # Entwicklungsserver auf http://localhost:3000
+npm install
+cp .env.example .env.local      # danach die Werte eintragen
+npm run dev                     # http://localhost:3000
 ```
-
-Weitere Befehle:
 
 | Befehl | Wirkung |
 | --- | --- |
 | `npm run dev` | Entwicklungsserver mit automatischem Neuladen |
-| `npm run build` | Produktionsbuild erzeugen |
+| `npm run build` | Produktionsbuild |
 | `npm run start` | Produktionsbuild lokal starten |
-| `npm run lint` | Code auf Fehler prüfen |
-| `npm run typecheck` | TypeScript prüfen, ohne zu bauen |
-| `npm run bilder` | Platzhalterbilder neu erzeugen |
+| `npm run lint` | Code prüfen |
+| `npm run typecheck` | TypeScript prüfen |
+| `npm run platzhalter` | Platzhalterbilder neu erzeugen |
+
+Die Seite läuft sofort – alle Bilder sind als neutrale Platzhalter
+vorhanden, auch die 150 Frames der Hero-Sequenz.
 
 ---
 
-## Was du ausfüllen musst
+## Eigene Bilder einbinden
 
-Alle Stammdaten stehen an **einer** Stelle: `content/site-config.ts`.
-Jeder noch offene Wert ist dort mit `TODO:` markiert.
+Alle Bilder liegen unter `public/`. Jede Datei einfach **gleichnamig
+überschreiben**, dann stimmt das Seitenverhältnis und nichts verrutscht.
 
-| Wert | Bedeutung |
-| --- | --- |
-| `inhaberinName` | Vollständiger Name – erscheint im Logo, im Impressum und in den E-Mails |
-| `strasseHausnummer` | Straße und Hausnummer. Pflichtangabe im Impressum, auch beim Homestudio. Ein Postfach reicht rechtlich nicht. |
-| `plzOrt` | PLZ und Ort fürs Impressum |
-| `telefon` | Telefonnummer in nationaler Schreibweise, z. B. `04498 1234567` |
-| `whatsappNummer` | Dieselbe Nummer international, ohne Plus und Leerzeichen, z. B. `4915112345678` |
-| `email` | E-Mail-Adresse für Anfragen und Impressum |
-| `instagramUrl` | Vollständige Instagram-Adresse |
-| `domain` | Endgültige Domain mit `https://`, ohne Schrägstrich am Ende |
-| `ustIdOderKleinunternehmer` | Umsatzsteuer-ID oder der Hinweis auf § 19 UStG |
-| `zustaendigesGesundheitsamt` | Nur nötig, wenn für das Tätowieren eine Anzeige beim Landkreis vorliegt. Sonst den Absatz im Impressum löschen. |
-
-Außerdem:
-
-- **Bilder** austauschen – Anleitung in [`public/images/README.md`](public/images/README.md).
-- **Logo**: Das Logo ist zunächst reine Typografie in
-  `components/Logo.tsx`. Sobald eine SVG-Datei vorliegt, tauschst du den
-  Inhalt dieser einen Komponente aus – alle Stellen, an denen das Logo
-  erscheint, ziehen automatisch nach.
-- **Kundinnenstimmen**: Die Texte in `content/testimonials.ts` sind sichtbar
-  als Platzhalter gekennzeichnet. Vor dem Livegang bitte durch echte,
-  freigegebene Zitate ersetzen oder den Abschnitt entfernen – erfundene
-  Bewertungen sind wettbewerbsrechtlich unzulässig.
-- **Öffnungstage**: In `content/booking-config.ts` ist Montag bis Freitag
-  hinterlegt. Wird samstags gearbeitet, `openingDays` um `6` ergänzen.
-
----
-
-## Umgebungsvariablen
-
-Die Datei `.env.local` wird nicht mit ins Repository übernommen. Bei Vercel
-trägst du dieselben Werte unter *Settings → Environment Variables* ein.
-
-| Variable | Pflicht | Bedeutung |
+| Ordner / Datei | Größe | Wofür |
 | --- | --- | --- |
-| `RESEND_API_KEY` | ja | API-Key von [resend.com](https://resend.com). Wird ausschließlich auf dem Server gelesen und gelangt nie in den Browser. |
-| `MAIL_FROM` | ja | Absenderadresse, z. B. `CH Beautyroom <termin@deine-domain.de>`. Die Domain muss bei Resend verifiziert sein. |
-| `MAIL_TO` | ja | Postfach, in dem die Terminanfragen landen |
-| `NEXT_PUBLIC_SITE_URL` | nein | Basis-URL der Website |
-| `MAIL_TRANSPORT` | nein | `smtp` setzen, um statt Resend einen eigenen Postausgang zu nutzen |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | nein | Nur nötig bei `MAIL_TRANSPORT=smtp`. Zusätzlich `npm install nodemailer` ausführen. |
+| `public/sequence/frame_0001.webp` … | 1440 × 1800 | Frames des Hero – siehe nächster Abschnitt |
+| `public/sequence-mobile/` | 720 × 900 | Kleinere Version, jedes 2. Frame |
+| `public/hero-fallback.webp` | 1440 × 1800 | Standbild, wenn keine Sequenz läuft |
+| `public/services/*.webp` | 1200 × 1500 | Vier Leistungsbilder, hochkant |
+| `public/process/*.webp` | 1000 × 1250 | Drei Bilder für „So arbeite ich“ |
+| `public/gallery/*.webp` | je nach `format` | Galerie – hoch 1000 × 1400, quer 1400 × 1000, quadrat 1200 × 1200 |
+| `public/gallery/*-vorher.webp` | wie das Nachher-Bild | Gegenstück für den Vergleichsregler |
+| `public/about/portrait.webp` | 1000 × 1400 | Porträt, wird als Bogen dargestellt |
+| `public/instagram/01.webp` … `06.webp` | 800 × 800 | Sechs Instagram-Kacheln |
+| `public/statement/pille-1.webp`, `pille-2.webp` | 400 × 400 | Runde Bilder im großen Satz |
+| `public/og-bild.jpg` | 1200 × 630 | Vorschau beim Teilen (bewusst JPG, nicht WebP) |
 
-**Ohne gesetzte Mail-Variablen** zeigt das Formular einen ruhigen Fehlerzustand
-mit dem Hinweis, direkt per E-Mail zu schreiben. Es geht also nichts still
-verloren – aber die Anfragen kommen eben auch nicht an. Bitte vor dem Livegang
+Zu jedem Galeriebild gehört ein Eintrag in `content/site.ts` mit `src`,
+`alt`, `kategorie` und `format`. Der Alt-Text beschreibt, was zu sehen ist –
+bitte immer auf Deutsch ausformulieren.
+
+**Rechtliches zu Bildern:** nur eigene Aufnahmen oder solche mit Lizenz
+verwenden. Sind Kundinnen erkennbar, brauchst du deren schriftliche
+Einwilligung – auch bei Nahaufnahmen der Augenpartie.
+
+---
+
+## Die Hero-Bildsequenz aus einem Handyvideo
+
+Der Hero zeichnet eine Bildfolge auf ein `<canvas>` und steuert sie über
+die Scroll-Position. Dafür braucht es Einzelbilder, keine Videodatei.
+
+### 1. Das Video aufnehmen
+
+- **Hochformat**, Handy auf ein Stativ oder feste Unterlage – die Kamera
+  darf sich nicht bewegen, nur der Kopf.
+- **5 bis 8 Sekunden.** Langsam den Kopf zur Seite drehen und wieder in die
+  Kamera schauen. Lieber zu langsam als zu schnell.
+- **Ruhiger, heller Hintergrund** – eine helle Wand genügt. Je gleichmäßiger
+  der Hintergrund, desto weicher wirkt die Sequenz.
+- **Gleichmäßiges Licht**, am besten Tageslicht von vorn. Kein Gegenlicht.
+- Oben und unten etwas Luft lassen: Der Ausschnitt wird je nach
+  Bildschirmgröße beschnitten.
+
+### 2. Frames erzeugen
+
+[ffmpeg](https://ffmpeg.org) installieren, dann im Projektordner:
+
+```bash
+# Alte Platzhalter entfernen
+rm -f public/sequence/*.webp public/sequence-mobile/*.webp
+
+# Desktop-Sequenz: 24 Bilder pro Sekunde, 1440 px breit
+ffmpeg -i video.mp4 -vf "fps=24,scale=1440:-1" \
+  -c:v libwebp -quality 80 public/sequence/frame_%04d.webp
+
+# Mobile Sequenz: jedes zweite Bild, halb so breit
+ffmpeg -i video.mp4 -vf "fps=12,scale=720:-1" \
+  -c:v libwebp -quality 72 public/sequence-mobile/frame_%04d.webp
+```
+
+### 3. Nummerierung der mobilen Frames angleichen
+
+Wichtig: Beide Ordner müssen **dieselben Frame-Nummern** verwenden, sonst
+passen Desktop und Mobil nicht zum selben Scroll-Fortschritt. `fps=12`
+erzeugt eine eigene Zählung ab `0001` – das lässt sich so umbenennen:
+
+```bash
+cd public/sequence-mobile
+i=1
+for datei in $(ls frame_*.webp | sort); do
+  neu=$(printf "frame_%04d.webp" $i)
+  [ "$datei" != "$neu" ] && mv "$datei" "$neu"
+  i=$((i + 2))      # 1, 3, 5, 7 … passend zu mobilSchrittweite: 2
+done
+cd ../..
+```
+
+### 4. Anzahl eintragen
+
+```bash
+ls public/sequence/*.webp | wc -l
+```
+
+Die Zahl in `content/site.ts` unter `hero.sequenz.anzahl` eintragen. Fertig.
+
+### Wie viele Frames sind sinnvoll?
+
+120 bis 180 sind ein guter Bereich. Darunter wirkt die Bewegung ruckelig,
+darüber wird die Seite unnötig schwer. Achte auf die Gesamtgröße:
+
+```bash
+du -sh public/sequence public/sequence-mobile
+```
+
+Bleib möglichst unter 6 MB für die Desktop-Sequenz. Wird es deutlich mehr,
+senke die Qualität (`-quality 70`) oder die Bildrate (`fps=18`).
+
+---
+
+## Die Fokus-Ringe anpassen
+
+Die Ringe, die auf Augen, Wimpern und Brauen zeigen, stehen in
+`content/site.ts` unter `hero.fokusRinge`:
+
+```ts
+{ id: 'wimpern', label: 'Wimpern', bei: 0.22, bis: 0.46, x: 62, y: 33, r: 9 },
+```
+
+| Feld | Bedeutung |
+| --- | --- |
+| `bei` / `bis` | Von wann bis wann der Ring sichtbar ist. `0` = Anfang des Hero-Scrollens, `1` = Ende. |
+| `x` / `y` | Position im Bild in Prozent, von links oben gemessen. |
+| `r` | Radius in Prozent der Bildbreite. |
+| `label` | Die kleine Beschriftung unter dem Ring. |
+
+**So gehst du vor:** `npm run dev` starten, bis zur passenden Stelle im
+Hero scrollen, dann `x` und `y` in kleinen Schritten ändern und speichern –
+der Ring springt sofort an die neue Stelle. Die Standardwerte liegen in der
+rechten Bildhälfte, damit sie nicht über der Headline liegen.
+
+---
+
+## Inhalte ändern
+
+Fast alles steht in **`content/site.ts`** – eine einzige Datei, nur Daten,
+kein Layout. Jeder noch offene Wert ist mit `TODO` markiert.
+
+Das musst du dort eintragen:
+
+- `business` – Name, vollständige Anschrift (Pflicht im Impressum, auch beim
+  Homestudio), Telefon, WhatsApp-Nummer international ohne Plus, E-Mail,
+  Domain, Umsatzsteuerangabe, Aufsichtsbehörde fürs Tätowieren
+- `termine` – Arbeitstage, Zeitfenster, Vorlaufzeit, Urlaubstage, Antwortzeit
+- `leistungen`, `ablauf`, `ueberMich`, `faq` – Texte gegenlesen und anpassen
+- `galerie` – Bilder mit Alt-Text und Kategorie
+
+**Urlaub eintragen:** bei `termine.gesperrteTage` ergänzen, Format
+`"JJJJ-MM-TT"`. Diese Tage sind im Kalender nicht mehr anklickbar.
+
+**Ein drittes Zeitfenster:** bei `termine.zeitfenster` einen Eintrag
+ergänzen. Kalender, Prüfregeln und E-Mails ziehen automatisch nach.
+
+---
+
+## E-Mail-Versand: Resend oder Formspree
+
+Beide Wege sind vorbereitet und werden über `MAIL_PROVIDER` in
+`.env.local` umgeschaltet. Der Rest des Codes bleibt gleich.
+
+### Weg 1 – Resend (empfohlen)
+
+Verschickt **zwei** E-Mails: die strukturierte Benachrichtigung an Carina
+und eine freundliche Eingangsbestätigung an die Kundin.
+
+```env
+MAIL_PROVIDER=resend
+RESEND_API_KEY=re_xxxxxxxx
+MAIL_FROM="CH Beautyroom <termin@deine-domain.de>"
+MAIL_TO="carina@example.de"
+```
+
+Einrichtung: Konto auf [resend.com](https://resend.com) anlegen, unter
+*Domains* die eigene Domain hinzufügen und die DNS-Einträge beim
+Domainanbieter setzen, dann unter *API Keys* einen Key erzeugen.
+
+### Weg 2 – Formspree
+
+Braucht kein eigenes Mail-Setup. Die Eingangsbestätigung an die Kundin
+richtest du dort im Formspree-Dashboard ein (Autoresponder).
+
+```env
+MAIL_PROVIDER=formspree
+FORMSPREE_ENDPOINT=https://formspree.io/f/xxxxxxxx
+```
+
+> Datei-Uploads im Tattoo-Formular sind bei Formspree kostenpflichtigen
+> Tarifen vorbehalten. Ohne passenden Tarif kommt die Anfrage an, die
+> Referenzbilder aber nicht.
+
+**Ohne gesetzte Variablen** zeigt das Formular einen ruhigen Fehlerzustand
+mit dem Hinweis, direkt per E-Mail zu schreiben. Es geht also nichts
+verloren – die Anfragen kommen aber auch nicht an. Vor dem Livegang bitte
 einmal testen.
 
-### Resend in fünf Minuten einrichten
+---
 
-1. Konto auf [resend.com](https://resend.com) anlegen (kostenlos für den
-   Bedarf eines kleinen Studios).
-2. Unter *Domains* die eigene Domain hinzufügen und die angezeigten
-   DNS-Einträge beim Domainanbieter eintragen.
-3. Unter *API Keys* einen Key erzeugen und als `RESEND_API_KEY` hinterlegen.
-4. `MAIL_FROM` auf eine Adresse dieser Domain setzen, `MAIL_TO` auf das eigene
-   Postfach.
+## Deployment bei Vercel
+
+1. Projekt auf [vercel.com](https://vercel.com) importieren (GitHub verbinden).
+2. Unter *Settings → Environment Variables* die Werte aus `.env.local`
+   eintragen – für *Production*, *Preview* und *Development*.
+3. Unter *Settings → Domains* die eigene Domain hinzufügen.
+4. `business.domain` in `content/site.ts` auf dieselbe Domain setzen, damit
+   Sitemap, canonical-Adressen und Vorschaubilder stimmen.
+5. Deploy auslösen.
+
+Alle Seiten werden statisch erzeugt. Dynamisch ist nur `/api/anfrage`.
+
+### Nach dem ersten Livegang prüfen
+
+- [ ] Testanfrage über beide Reiter – kommen die E-Mails an?
+- [ ] Impressum und Datenschutzerklärung inhaltlich durchlesen
+- [ ] Alle Bilder und die Hero-Sequenz ausgetauscht?
+- [ ] `business.domain` gesetzt, `/sitemap.xml` erreichbar?
+- [ ] Seite auf dem eigenen Handy durchklicken
+
+---
+
+## Google-Unternehmensprofil
+
+Für ein lokales Studio bringt ein gepflegtes Google-Profil mehr als jede
+andere Maßnahme. Wer in Ramsloh oder Barßel nach „Wimpernverlängerung in
+der Nähe“ sucht, sieht zuerst die Karte.
+
+1. Profil auf [google.com/business](https://www.google.com/business/) anlegen.
+   Kategorie **Kosmetikstudio**, als zweite Kategorie **Tattoo-Studio**.
+2. Weil es ein Homestudio ohne Laufkundschaft ist: Adresse **ausblenden**
+   und stattdessen ein **Einzugsgebiet** angeben (Saterland, Scharrel,
+   Sedelsberg, Strücklingen, Barßel, Friesoythe, Cloppenburg, Bösel,
+   Westerstede, Oldenburg). Google erlaubt das ausdrücklich für Betriebe,
+   die nur nach Vereinbarung empfangen.
+3. Öffnungszeiten eintragen: Montag bis Freitag, 08:00 – 12:00 Uhr.
+4. **Website verlinken** – der entscheidende Schritt.
+5. Zufriedene Kundinnen um Bewertungen bitten; sie sind in der lokalen
+   Suche der stärkste einzelne Faktor.
+6. Die Website in der
+   [Google Search Console](https://search.google.com/search-console)
+   bestätigen und `/sitemap.xml` einreichen.
+
+Was die Website schon mitbringt: deutschsprachige Metadaten mit Ortsbezug,
+JSON-LD für `BeautySalon` mit `additionalType: TattooParlor`, FAQ- und
+Breadcrumb-Schema, `sitemap.xml`, `robots.txt`, Open-Graph-Bild und die
+Zielbegriffe organisch im Text.
 
 ---
 
 ## Projektstruktur
 
 ```
-app/                        Seiten und Routen (Next.js App Router)
-  layout.tsx                Grundgerüst: Kopf, Fuß, Schriften, Metadaten
-  page.tsx                  Startseite – setzt die Abschnitte zusammen
-  galerie/page.tsx          Komplette Galerie
-  impressum/page.tsx        Impressum nach § 5 DDG
-  datenschutz/page.tsx      Datenschutzerklärung nach Art. 13 DSGVO
-  danke/page.tsx            Bestätigungsseite nach einer Anfrage
-  not-found.tsx             404-Seite im Look der Website
-  error.tsx                 Fehlerseite im Look der Website
-  sitemap.ts, robots.ts     Suchmaschinen-Dateien
-  actions/terminanfrage.ts  Server Action: prüft die Anfrage und verschickt sie
-  globals.css               Design-System: Farben, Schriften, Abstände
+app/
+  layout.tsx              Grundgerüst: Schriften, Kopf, Fuß, JSON-LD
+  page.tsx                Startseite – setzt die Abschnitte zusammen
+  globals.css             Design-System: Farben, Typografie, Bausteine
+  impressum/              Impressum nach § 5 DDG
+  datenschutz/            Datenschutzerklärung nach Art. 13 DSGVO
+  api/anfrage/route.ts    Nimmt beide Formulare entgegen und verschickt sie
+  sitemap.ts, robots.ts   Suchmaschinen-Dateien
+  not-found.tsx, error.tsx
 
-components/                 Bausteine der Oberfläche
-  Header, Footer, Hero, ...  Abschnitte der Startseite
-  GalleryGrid, Lightbox      Galerie mit Filter und Vollbildansicht
-  booking/                   Das Buchungsmodul
-    BookingSection.tsx       Weichenstellung: Beauty oder Tattoo
-    BeautyFlow.tsx           Drei Schritte mit Kalender
-    TattooForm.tsx           Tattoo-Anfrage mit Bild-Upload
-    Calendar.tsx             Selbst gebauter Monatskalender
-    Fields.tsx               Eingabefelder, Auswahlgruppen, Fehlermeldungen
+components/
+  providers/SmoothScroll  Lenis, gekoppelt an GSAP
+  layout/                 Header, Footer, Logo, Rahmen der Rechtsseiten
+  hero/                   Canvas-Sequenz, Fokus-Ringe, Kennzahlen-Karte
+  sections/               Statement, Leistungen, Ablauf, Galerie,
+                          Lightbox, Vorher-Nachher, Über mich,
+                          Instagram, FAQ
+  booking/                Reiter, beide Formulare, Kalender, Eingabefelder
+  ui/                     Reveal (Scroll-Einblendung), Icons
 
-content/                    Alle Texte und Daten – hier änderst du Inhalte
-  site-config.ts            Stammdaten (Name, Adresse, Kontakt, Domain)
-  services.ts               Die vier Leistungsbereiche
-  gallery.ts                Galeriebilder
-  faq.ts                    Häufige Fragen
-  booking-config.ts         Zeitfenster, Öffnungstage, Vorlaufzeit, Urlaub
-  fineline.ts               Motivwelten, Ablauf, Vorbereitung, Pflege
-  ablauf.ts                 Ablauf eines Termins, Vertrauensmerkmale
-  testimonials.ts           Kundinnenstimmen (aktuell Platzhalter)
+content/
+  site.ts                 ALLE Inhalte und Daten – hier änderst du
+  site-helfer.ts          Kleine Funktionen rund um site.ts
 
-lib/                        Technik im Hintergrund
-  dates.ts                  Kalenderlogik, Zeitzone Europe/Berlin
-  schemas.ts                Prüfregeln, gemeinsam für Browser und Server
-  mail.ts                   E-Mail-Versand (Resend oder SMTP)
-  mail-templates.ts         Aufbau der beiden E-Mails
-  rate-limit.ts             Einfacher Schutz vor Massenanfragen
-  jsonld.ts                 Strukturierte Daten für Google
-  fonts.ts                  Schriften, lokal ausgeliefert
+lib/
+  gsap.ts                 GSAP und ScrollTrigger registrieren
+  dates.ts                Kalenderlogik, Zeitzone Europe/Berlin
+  schemas.ts              Prüfregeln für Browser und Server
+  mail.ts                 Versand – Resend oder Formspree
+  mail-vorlagen.ts        Aufbau der beiden E-Mails
+  rate-limit.ts           Einfacher Schutz vor Massenanfragen
+  jsonld.ts               Strukturierte Daten
+  fonts.ts                Schriften, lokal ausgeliefert
+  use-focus-trap.ts       Fokus-Falle für Overlays
 
-public/images/              Bilder – siehe README in diesem Ordner
-scripts/                    Hilfsskript zum Erzeugen der Platzhalterbilder
+public/                   Bilder – siehe oben
+scripts/                  Erzeugt die Platzhalterbilder
 ```
-
----
-
-## Inhalte ändern, ohne zu programmieren
-
-Fast alle Texte liegen in `content/`. Die Dateien sind reine Listen und
-Texte – es gibt dort kein JSX und kein Layout.
-
-**Beispiel: eine neue Frage ins FAQ aufnehmen.** In `content/faq.ts` einen
-Block ergänzen:
-
-```ts
-{
-  frage: 'Kann ich meine Kinder mitbringen?',
-  antwort:
-    'Weil ich nur eine Kundin gleichzeitig betreue, ist das leider schwierig. Sprich mich aber gern an – vielleicht finden wir einen passenden Termin.',
-},
-```
-
-Die Frage erscheint danach automatisch im Aufklapp-Bereich **und** in den
-strukturierten Daten für Google.
-
-**Urlaub eintragen:** in `content/booking-config.ts` bei `blockedDates`
-ergänzen, im Format `"JJJJ-MM-TT"`. Diese Tage sind im Kalender dann nicht
-mehr anklickbar.
-
-**Ein drittes Zeitfenster:** in `content/booking-config.ts` bei
-`slotStartTimes` einen Eintrag ergänzen, z. B. `"12:00"`. Mehr ist nicht nötig –
-Kalender, Prüfregeln und E-Mails ziehen automatisch nach.
-
----
-
-## Das Buchungsmodul
-
-Das Modul ist **kein verbindliches Buchungssystem**. Es kennt keine
-Verfügbarkeiten und reserviert nichts. Es sammelt die Angaben strukturiert ein
-und verschickt sie als E-Mail. Das steht auch für die Kundin an mehreren
-Stellen deutlich auf der Seite.
-
-**Zwei Wege:**
-
-- **Beauty-Behandlung** → Leistung wählen → Wunschtag und Zeitfenster im
-  Kalender → Kontaktdaten → Übersicht → absenden.
-- **Fineline-Tattoo** → kein Kalender, stattdessen ein eigenes Formular für
-  Motividee, Körperstelle, Größe, Ausführung und bis zu drei Referenzbilder.
-
-**Regeln des Kalenders** (alle aus `content/booking-config.ts`):
-
-- Termine nur Montag bis Freitag zwischen 08:00 und 12:00 Uhr.
-- Zwei Zeitfenster pro Tag: 08:00–10:00 Uhr und 10:00–12:00 Uhr.
-- Mindestens 24 Stunden Vorlauf. Die Vorlaufzeit gilt für das konkrete
-  Zeitfenster: Wer morgens um neun anfragt, bekommt für den nächsten Tag nur
-  noch das 10-Uhr-Fenster angeboten.
-- Höchstens 90 Tage im Voraus.
-- Vergangene Tage, Wochenenden und geblockte Tage sind ausgegraut, mit
-  `aria-disabled` gekennzeichnet und nicht anklickbar.
-- Vollständig mit der Tastatur bedienbar: Pfeiltasten bewegen den Fokus,
-  Pos1/Ende springen an Wochenanfang und -ende, Bild auf/ab wechseln den Monat,
-  Enter oder Leertaste wählen aus.
-
-Alle Berechnungen laufen in der Zeitzone `Europe/Berlin` – unabhängig davon,
-in welcher Zeitzone der Server läuft.
-
-**Schutz vor Spam** – ganz ohne Captcha:
-
-- ein für Menschen unsichtbares Feld, das leer bleiben muss (Honeypot),
-- eine Zeitfalle: Absenden in unter drei Sekunden wird verworfen,
-- ein einfaches Limit pro IP-Adresse (fünf Anfragen pro Stunde).
-
-**Zwei E-Mails pro Anfrage:**
-
-1. an dich, mit allen Angaben strukturiert aufbereitet. Betreff:
-   `Neue Terminanfrage – [Leistung] – [Datum] [Uhrzeit]`. Ein „Antworten“
-   geht direkt an die Kundin.
-2. an die Kundin, als freundliche Eingangsbestätigung mit ihren Angaben.
-
-**Es werden keine Daten gespeichert** – weder in einer Datenbank noch als Datei
-auf dem Server. Genau so steht es auch in der Datenschutzerklärung.
-
----
-
-## Deployment bei Vercel
-
-1. Projekt bei [vercel.com](https://vercel.com) importieren (GitHub verbinden).
-2. Unter *Settings → Environment Variables* die Werte aus `.env.local`
-   eintragen – für *Production*, *Preview* und *Development*.
-3. Unter *Settings → Domains* die eigene Domain hinzufügen und die
-   angezeigten DNS-Einträge beim Domainanbieter setzen.
-4. `domain` in `content/site-config.ts` auf dieselbe Domain setzen, damit
-   Sitemap, canonical-Adressen und Vorschaubilder stimmen.
-5. Deploy auslösen. Jeder Push auf den Hauptzweig baut die Seite automatisch neu.
-
-Die Seite wird beim Bauen vollständig statisch erzeugt. Dynamisch ist nur das
-Absenden des Formulars.
-
-### Nach dem ersten Livegang prüfen
-
-- [ ] Eine Testanfrage über beide Formulare abschicken – kommen beide E-Mails an?
-- [ ] Impressum und Datenschutzerklärung inhaltlich durchlesen.
-- [ ] Alle Bilder ausgetauscht?
-- [ ] Kundinnenstimmen ersetzt oder Abschnitt entfernt?
-- [ ] `domain` gesetzt, `https://deine-domain.de/sitemap.xml` erreichbar?
-- [ ] Seite auf dem eigenen Handy durchklicken.
-
----
-
-## Google-Unternehmensprofil – der wichtigste SEO-Hebel
-
-Für ein lokales Studio bringt **ein gepflegtes Google-Unternehmensprofil mehr
-als jede andere Maßnahme**. Wer in Ramsloh, Scharrel oder Barßel nach
-„Wimpernverlängerung in der Nähe“ sucht, sieht zuerst die Karte – und erst
-darunter die Websites.
-
-So gehst du vor:
-
-1. Unter [google.com/business](https://www.google.com/business/) ein Profil
-   anlegen. Als Kategorie **„Kosmetikstudio“** wählen, als weitere Kategorie
-   **„Tattoo-Studio“** ergänzen.
-2. Weil es ein Homestudio ohne Laufkundschaft ist: die Adresse **ausblenden**
-   und stattdessen ein **Einzugsgebiet** angeben (Saterland, Scharrel,
-   Sedelsberg, Strücklingen, Barßel, Friesoythe, Cloppenburg, Bösel,
-   Westerstede, Oldenburg). Google erlaubt das ausdrücklich für Betriebe, die
-   Kundinnen nur nach Vereinbarung empfangen.
-3. Öffnungszeiten eintragen: Montag bis Freitag, 08:00–12:00 Uhr.
-4. **Die Website verlinken** – das ist der entscheidende Schritt. Die Website
-   liefert über ihre strukturierten Daten (`BeautySalon` mit
-   `additionalType: TattooParlor`) dieselben Angaben noch einmal an Google:
-   Name, Ort, Öffnungszeiten, Leistungen, Instagram-Profil.
-5. Profil mit echten Fotos füllen – dieselben wie auf der Website.
-6. Zufriedene Kundinnen um eine Bewertung bitten. Bewertungen sind der
-   stärkste einzelne Faktor in der lokalen Suche.
-7. Zusätzlich anmelden: die Website in der
-   [Google Search Console](https://search.google.com/search-console)
-   bestätigen und dort einmal `https://deine-domain.de/sitemap.xml` einreichen.
-
-Was die Website selbst bereits mitbringt:
-
-- deutschsprachige Titel und Beschreibungen mit Ortsbezug pro Seite,
-- strukturierte Daten für Studio, FAQ und Brotkrümelnavigation,
-- `sitemap.xml` und `robots.txt`,
-- Vorschaubilder für WhatsApp, Instagram und Facebook,
-- saubere Überschriftenhierarchie mit genau einer `h1` je Seite,
-- Zielbegriffe organisch im Fließtext: Wimpernverlängerung Ramsloh,
-  Lashlifting Saterland, Browlifting Friesoythe, Fineline Tattoo Cloppenburg,
-  Kosmetikstudio Saterland.
-
----
-
-## Rechtliches
-
-- **Impressum** (`/impressum`) nach § 5 DDG: Name, vollständige Anschrift,
-  Kontakt, Umsatzsteuerangabe, Aufsichtsbehörde, Hinweis nach Art. 14
-  ODR-Verordnung und die Erklärung zur Verbraucherschlichtung.
-- **Datenschutzerklärung** (`/datenschutz`) nach Art. 13 DSGVO: verantwortliche
-  Stelle, Hosting mit Server-Logfiles, Formulare mit Zweck, Rechtsgrundlage,
-  Speicherdauer und Empfängern, Datei-Uploads, Betroffenenrechte, Hinweis auf
-  lokal ausgelieferte Schriften und auf die reine Verlinkung zu Instagram.
-- **Kein Cookie-Banner nötig**, weil keine einwilligungspflichtigen Cookies und
-  keine Drittanbieter-Dienste geladen werden. Wird später doch eine
-  Reichweitenmessung gewünscht, bitte eine cookiefreie Lösung wählen und die
-  Datenschutzerklärung ergänzen.
-- **Keine Preise auf der Website.** Damit greift die Preisangabenverordnung
-  nicht. Werden später Preise ergänzt, müssen es Endpreise sein, bei
-  Kleinunternehmerschaft mit entsprechendem Hinweis.
-- **Tätowierungen ab 18 Jahren**, keine Tattoos in Schwangerschaft und
-  Stillzeit – beides steht sichtbar auf der Seite und wird im Formular
-  bestätigt.
-- **Keine Heil- oder Wirkversprechen** bei Kosmetik und Ringana – die Texte
-  sind bewusst beschreibend gehalten (Heilmittelwerbegesetz,
-  Health-Claims-Verordnung).
-- **Barrierefreiheit:** Das Barrierefreiheitsstärkungsgesetz gilt seit dem
-  28. Juni 2025. Kleinstunternehmen mit weniger als 10 Beschäftigten und
-  höchstens 2 Mio. € Jahresumsatz sind bei Dienstleistungen ausgenommen –
-  auf dieses Studio trifft die Ausnahme aller Voraussicht nach zu. Die Seite
-  ist trotzdem nach WCAG 2.1 AA gebaut.
-
-> Diese Hinweise sind keine Rechtsberatung. Die fertigen Rechtstexte sollten
-> vor dem Livegang von einer Anwältin oder über einen geprüften Generator
-> abgesichert werden.
 
 ---
 
@@ -348,31 +337,56 @@ Was die Website selbst bereits mitbringt:
 
 Kurz begründet, damit spätere Änderungen nichts kaputtmachen:
 
-- **Next.js 15 mit App Router, TypeScript im strict-Modus, Tailwind CSS v4.**
-  Alle Farben und Schriften liegen als Design-Tokens in `app/globals.css`.
-  Im Markup stehen keine Hex-Werte.
-- **Schriften lokal.** `next/font/google` lädt Cormorant Garamond und Jost
-  beim Bauen herunter und liefert sie danach vom eigenen Server aus. Zur
-  Laufzeit geht kein Request an Google – das ist die Voraussetzung dafür, dass
-  die Seite ohne Einwilligungsbanner auskommt.
-- **Ein Prüf-Schema für beide Seiten.** `lib/schemas.ts` wird im Browser
-  (react-hook-form) und in der Server Action verwendet. Die Prüfung im Browser
-  ist Komfort, die auf dem Server ist die verbindliche.
-- **Eigener Kalender statt Datepicker-Bibliothek.** Ein fremder Datepicker
-  hätte deutsche Beschriftung, Wochenstart am Montag, gesperrte Tage und
-  vollständige Tastaturbedienung ohnehin nur teilweise mitgebracht – und
-  kostet zusätzliche Ladezeit.
+- **Lenis treibt ScrollTrigger an, nicht umgekehrt.** In
+  `SmoothScroll.tsx` meldet Lenis jeden Scroll-Schritt an ScrollTrigger,
+  und GSAPs Ticker treibt Lenis an. Ohne diese Kopplung laufen angeheftete
+  Sektionen und das weiche Scrollen auseinander.
+- **Der Hero wird per CSS `sticky` angeheftet, nicht per GSAP-Pin.** Das
+  kommt ohne Pin-Spacer aus und vermeidet Layoutsprünge beim Neuberechnen.
+  ScrollTrigger liefert nur den Fortschritt.
+- **Die Bildsequenz lädt das erste Frame zuerst und einzeln**, danach den
+  Rest mit acht gleichzeitigen Anfragen. So steht sofort ein Bild, während
+  im Hintergrund weitergeladen wird.
+- **Die Vorlaufzeit gilt pro Zeitfenster, nicht pro Tag.** Wer morgens um
+  neun anfragt, bekommt für den nächsten Tag noch das 10-Uhr-Fenster, aber
+  nicht mehr das um acht – das läge nur 23 Stunden entfernt.
 - **Eingabefeld und Beschriftung sind über `id`/`htmlFor` verknüpft, nicht
-  ineinander verschachtelt.** Liegt ein Auswahlfeld im Label, leitet das Label
-  den Klick ein zweites Mal weiter und React erkennt die Änderung nicht mehr,
+  ineinander verschachtelt.** Liegt das Feld im Label, leitet das Label den
+  Klick ein zweites Mal weiter und React erkennt die Änderung nicht mehr,
   wenn direkt auf den Punkt geklickt wird. Bitte so lassen.
-- **Fehlermeldungen haben festen Platz.** Die Zeile unter jedem Feld ist immer
-  vorhanden, auch ohne Fehler. So springt das Layout nicht, wenn eine Meldung
-  erscheint oder verschwindet – sonst verrutscht der „Weiter“-Knopf unter dem
-  Finger. Screenreader lesen den Bereich dadurch außerdem zuverlässiger vor.
-- **Kontrast vor Ästhetik.** Für Text und für die Ränder von Bedienelementen
-  gibt es abgedunkelte Varianten der sehr hellen Grundpalette
-  (`--color-ink`, `--color-clay-dark`, `--color-sage-dark`, `--color-control`).
+- **Fehlermeldungen haben festen Platz.** Die Zeile unter jedem Feld ist
+  immer vorhanden. So springt das Layout nicht, wenn eine Meldung erscheint
+  oder verschwindet – sonst verrutscht der Absenden-Knopf unter dem Finger.
+- **Kontrast vor Ästhetik.** Die Palette ist sehr hell, deshalb gibt es
+  abgedunkelte Varianten für Text und für Ränder von Bedienelementen
+  (`--color-akzent-text`, `--color-akzent-rand`, `--color-leise-stark`).
   Fließtext erreicht mindestens 4,5:1, Bedienelemente mindestens 3:1.
-- **Bewegung ist optional.** Alle Animationen entfallen vollständig, wenn im
-  Betriebssystem „Bewegung reduzieren“ aktiviert ist.
+- **Bewegung ist optional.** Bei „Bewegung reduzieren“ entfallen Lenis, die
+  Bildsequenz und alle Scroll-Animationen; stattdessen erscheint das
+  Standbild und alle Inhalte stehen sofort da.
+
+---
+
+## Rechtliches
+
+- **Impressum** (`/impressum`) nach § 5 DDG, **Datenschutzerklärung**
+  (`/datenschutz`) nach Art. 13 DSGVO – beide vollständig ausformuliert.
+- **Kein Cookie-Banner nötig**, weil keine einwilligungspflichtigen Cookies
+  und keine Drittanbieter-Dienste geladen werden.
+- **Keine Preise auf der Website.** Damit greift die Preisangabenverordnung
+  nicht. Werden später Preise ergänzt, müssen es Endpreise sein, bei
+  Kleinunternehmerschaft mit entsprechendem Hinweis.
+- **Tätowierungen ab 18 Jahren**, keine Tattoos in Schwangerschaft und
+  Stillzeit – beides steht sichtbar auf der Seite und wird im Formular
+  bestätigt.
+- **Keine Heil- oder Wirkversprechen** bei den Kosmetiktexten
+  (Heilmittelwerbegesetz, Health-Claims-Verordnung).
+- **Barrierefreiheit:** Das Barrierefreiheitsstärkungsgesetz gilt seit dem
+  28. Juni 2025. Kleinstunternehmen mit weniger als 10 Beschäftigten und
+  höchstens 2 Mio. € Jahresumsatz sind bei Dienstleistungen ausgenommen –
+  auf dieses Studio trifft die Ausnahme aller Voraussicht nach zu. Die
+  Seite ist trotzdem nach WCAG 2.1 AA gebaut.
+
+> Diese Hinweise sind keine Rechtsberatung. Die fertigen Rechtstexte
+> sollten vor dem Livegang von einer Anwältin oder über einen geprüften
+> Generator abgesichert werden.

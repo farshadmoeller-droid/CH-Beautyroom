@@ -1,18 +1,21 @@
 {
   "name": "ch-beautyroom",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Website für CH Beautyroom – Homestudio für Wimpern, Lifting und Fineline-Tattoos in 26683 Ramsloh.",
+  "description": "CH Beautyroom – Homestudio für Wimpern, Lifting und Fineline-Tattoos in 26683 Ramsloh.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "bilder": "node scripts/generate-placeholders.mjs public/images"
+    "platzhalter": "node scripts/platzhalter-bilder.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "framer-motion": "^11.15.0",
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.18",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

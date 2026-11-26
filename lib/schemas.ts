@@ -1,29 +1,35 @@
 /**
- * Validierungsschemata – werden unveraendert im Browser (react-hook-form)
- * und auf dem Server (Server Action) verwendet. Fehlermeldungen sind deutsch
- * und werden direkt unter dem jeweiligen Feld ausgegeben.
+ * Prüfregeln, die im Browser (react-hook-form) und auf dem Server
+ * (Route Handler) unverändert verwendet werden. Die Prüfung im Browser ist
+ * Komfort – verbindlich ist die auf dem Server.
  */
 
 import { z } from 'zod';
-import { bookableTreatments } from '@/content/services';
-import { koerperstellen, uploadLimits } from '@/content/booking-config';
-import { istAuswaehlbar, slotIstVerfuegbar, zeitfenster } from '@/lib/dates';
+import { formular, leistungen, termine } from '@/content/site';
+import { fensterVerfuegbar, istFrei } from '@/lib/dates';
 
 const pflicht = 'Dieses Feld brauche ich noch von dir.';
 
-const nameFeld = z
+const name = z
   .string({ required_error: pflicht })
   .trim()
   .min(1, pflicht)
   .min(2, 'Bitte mindestens zwei Zeichen.')
-  .max(60, 'Das ist etwas zu lang – bitte kürzer fassen.');
+  .max(80, 'Das ist etwas zu lang.');
 
-const emailFeld = z
+const email = z
   .string({ required_error: pflicht })
   .trim()
   .min(1, pflicht)
   .email('Diese E-Mail-Adresse sieht noch nicht vollständig aus.')
   .max(120, 'Diese Adresse ist zu lang.');
+
+const telefon = z
+  .string({ required_error: pflicht })
+  .trim()
+  .min(1, pflicht)
+  .max(40, 'Diese Nummer ist zu lang.')
+  .regex(/^[0-9+()/\s-]+$/, 'Bitte nur Ziffern, Leerzeichen und + ( ) - / verwenden.');
 
 const telefonOptional = z
   .string()
@@ -33,120 +39,117 @@ const telefonOptional = z
   .optional()
   .or(z.literal(''));
 
-const datenschutzFeld = z.literal(true, {
+const datenschutz = z.literal(true, {
   errorMap: () => ({ message: 'Ohne deine Einwilligung darf ich die Anfrage leider nicht verarbeiten.' }),
 });
 
-/** Felder, die nur zur Spam-Abwehr dienen und nie angezeigt werden. */
-export const spamSchutzSchema = z.object({
+/** Felder, die nur der Spam-Abwehr dienen und nie sichtbar sind. */
+const spamSchutz = {
   /** Honeypot: muss leer bleiben. */
   webseite: z.string().max(0).optional().or(z.literal('')),
-  /** Zeitstempel des Formular-Aufbaus in Millisekunden. */
-  gestartetUm: z.coerce.number().optional(),
-});
+  /** Zeitpunkt des Formularaufbaus in Millisekunden. */
+  gestartet: z.coerce.number().optional(),
+};
 
-const behandlungsIds = bookableTreatments.map((treatment) => treatment.id) as [string, ...string[]];
-const zeitfensterWerte = zeitfenster().map((fenster) => fenster.start) as [string, ...string[]];
+const leistungsIds = leistungen.filter((l) => l.imFormular).map((l) => l.id) as [string, ...string[]];
+const fensterIds = termine.zeitfenster.map((f) => f.id) as [string, ...string[]];
 
-/** Terminanfrage fuer Beauty-Behandlungen (mit Kalender). */
-export const beautyAnfrageSchema = spamSchutzSchema.extend({
-  art: z.literal('beauty'),
-  behandlung: z.enum(behandlungsIds, {
-    errorMap: () => ({ message: 'Bitte wähle eine Behandlung aus.' }),
-  }),
-  datum: z
-    .string({ required_error: 'Bitte wähle einen Wunschtag im Kalender.' })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Bitte wähle einen Wunschtag im Kalender.')
-    .refine((wert) => istAuswaehlbar(wert), {
-      message: 'Dieser Tag ist leider nicht buchbar. Bitte wähle einen anderen.',
+/* ─────────────────────────────────────────────────── Beauty-Termin */
+
+export const beautySchema = z
+  .object({
+    art: z.literal('beauty'),
+    ...spamSchutz,
+    vorname: name,
+    nachname: name,
+    telefon,
+    email,
+    leistung: z.enum(leistungsIds, { errorMap: () => ({ message: 'Bitte wähle eine Leistung aus.' }) }),
+    datum: z
+      .string({ required_error: 'Bitte wähle einen Wunschtag im Kalender.' })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Bitte wähle einen Wunschtag im Kalender.')
+      .refine((wert) => istFrei(wert), {
+        message: 'Dieser Tag ist leider nicht buchbar. Bitte wähle einen anderen.',
+      }),
+    zeitfenster: z.enum(fensterIds, {
+      errorMap: () => ({ message: 'Bitte wähle eines der beiden Zeitfenster.' }),
     }),
-  zeitfenster: z.enum(zeitfensterWerte, {
-    errorMap: () => ({ message: 'Bitte wähle eines der beiden Zeitfenster.' }),
-  }),
-  alternativTermin: z.string().trim().max(200, 'Bitte etwas kürzer fassen.').optional().or(z.literal('')),
-  vorname: nameFeld,
-  nachname: nameFeld,
-  email: emailFeld,
-  telefon: telefonOptional,
-  bereitsKundin: z.enum(['ja', 'nein'], {
-    errorMap: () => ({ message: 'Bitte wähle Ja oder Nein.' }),
-  }),
-  nachricht: z.string().trim().max(2000, 'Bitte auf 2000 Zeichen kürzen.').optional().or(z.literal('')),
-  datenschutz: datenschutzFeld,
-}).superRefine((werte, ctx) => {
-  // Die Vorlaufzeit gilt fuer das konkrete Zeitfenster, nicht pauschal fuer
-  // den ganzen Tag – sonst waere "morgen frueh um 8" faelschlich erlaubt.
-  if (werte.datum && werte.zeitfenster && !slotIstVerfuegbar(werte.datum, werte.zeitfenster)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['zeitfenster'],
-      message: 'Dieses Zeitfenster ist zu kurzfristig. Bitte wähle ein späteres.',
-    });
-  }
-});
+    ersterBesuch: z.enum(['ja', 'nein'], {
+      errorMap: () => ({ message: 'Bitte wähle Ja oder Nein.' }),
+    }),
+    nachricht: z.string().trim().max(2000, 'Bitte auf 2000 Zeichen kürzen.').optional().or(z.literal('')),
+    datenschutz,
+  })
+  .superRefine((werte, ctx) => {
+    // Die Vorlaufzeit gilt für das konkrete Zeitfenster, nicht für den Tag.
+    const fenster = termine.zeitfenster.find((f) => f.id === werte.zeitfenster);
+    if (werte.datum && fenster && !fensterVerfuegbar(werte.datum, fenster.start)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['zeitfenster'],
+        message: 'Dieses Zeitfenster ist zu kurzfristig. Bitte wähle ein späteres.',
+      });
+    }
+  });
 
-export type BeautyAnfrage = z.infer<typeof beautyAnfrageSchema>;
+export type BeautyAnfrage = z.infer<typeof beautySchema>;
 
-/** Terminanfrage fuer Fineline-Tattoos (ohne Kalender, mit Motividee). */
-export const tattooAnfrageSchema = spamSchutzSchema.extend({
+/* ─────────────────────────────────────────────── Fineline-Tattoo */
+
+export const tattooSchema = z.object({
   art: z.literal('tattoo'),
-  vorname: nameFeld,
-  nachname: nameFeld,
-  email: emailFeld,
+  ...spamSchutz,
+  vorname: name,
+  nachname: name,
   telefon: telefonOptional,
-  motividee: z
+  email,
+  motiv: z
     .string({ required_error: pflicht })
     .trim()
     .min(1, pflicht)
     .min(20, 'Erzähl mir bitte etwas ausführlicher von deiner Idee – mindestens 20 Zeichen.')
     .max(3000, 'Bitte auf 3000 Zeichen kürzen.'),
-  koerperstelle: z.enum(koerperstellen as unknown as [string, ...string[]], {
+  koerperstelle: z.enum(formular.koerperstellen as unknown as [string, ...string[]], {
     errorMap: () => ({ message: 'Bitte wähle eine Körperstelle.' }),
   }),
-  groesseCm: z
-    .string({ required_error: pflicht })
-    .trim()
-    .min(1, 'Eine ungefähre Größe hilft mir sehr.')
-    .max(30, 'Bitte kürzer angeben, z. B. "ca. 8 cm".'),
-  farbe: z.enum(['schwarz-grau', 'farbe', 'unentschieden'], {
-    errorMap: () => ({ message: 'Bitte triff eine Auswahl.' }),
+  groesse: z.enum(formular.groessen as unknown as [string, ...string[]], {
+    errorMap: () => ({ message: 'Bitte wähle eine ungefähre Größe.' }),
   }),
-  erweiterung: z.enum(['ja', 'nein'], {
-    errorMap: () => ({ message: 'Bitte wähle Ja oder Nein.' }),
-  }),
-  wunschzeitraum: z
+  zeitraum: z
     .string({ required_error: pflicht })
     .regex(/^\d{4}-\d{2}$/, 'Bitte wähle einen Wunschmonat.'),
+  erstesTattoo: z.enum(['ja', 'nein'], {
+    errorMap: () => ({ message: 'Bitte wähle Ja oder Nein.' }),
+  }),
   volljaehrig: z.literal(true, {
     errorMap: () => ({ message: 'Ich tätowiere ausschließlich ab 18 Jahren.' }),
   }),
-  datenschutz: datenschutzFeld,
+  datenschutz,
 });
 
-export type TattooAnfrage = z.infer<typeof tattooAnfrageSchema>;
+export type TattooAnfrage = z.infer<typeof tattooSchema>;
 
-export type Anfrage = BeautyAnfrage | TattooAnfrage;
+/* ────────────────────────────────────────────────────── Gemeinsam */
 
-/** Ergebnis der Server Action – wird im Formular ausgewertet. */
 export type AnfrageErgebnis =
   | { status: 'ok'; referenz: string }
   | { status: 'fehler'; nachricht: string; felder?: Record<string, string> };
 
-/** Pruefung der hochgeladenen Referenzbilder. Gilt im Browser und auf dem Server. */
+/** Prüft die hochgeladenen Referenzbilder – gilt im Browser und auf dem Server. */
 export function pruefeDateien(dateien: { name: string; size: number; type: string }[]): string | null {
-  if (dateien.length > uploadLimits.maxFiles) {
-    return `Bitte lade höchstens ${uploadLimits.maxFiles} Bilder hoch.`;
+  if (dateien.length > formular.upload.maxDateien) {
+    return `Bitte lade höchstens ${formular.upload.maxDateien} Bilder hoch.`;
   }
   for (const datei of dateien) {
-    if (!(uploadLimits.acceptedTypes as readonly string[]).includes(datei.type)) {
+    if (!(formular.upload.typen as readonly string[]).includes(datei.type)) {
       return `„${datei.name}“ hat ein Format, das ich nicht verarbeiten kann. Bitte JPG, PNG oder WebP.`;
     }
-    if (datei.size > uploadLimits.maxFileSizeBytes) {
+    if (datei.size > formular.upload.maxBytes) {
       return `„${datei.name}“ ist größer als 5 MB. Bitte lade eine kleinere Datei hoch.`;
     }
   }
   return null;
 }
 
-/** Mindestzeit zwischen Formularaufbau und Absenden (Zeitfalle gegen Bots). */
+/** Mindestzeit zwischen Aufbau und Absenden – Zeitfalle gegen Bots. */
 export const MINDEST_AUSFUELLZEIT_MS = 3000;

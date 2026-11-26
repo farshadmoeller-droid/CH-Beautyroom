@@ -6,16 +6,15 @@ import { useController, type Control, type FieldValues, type Path } from 'react-
 /**
  * Fehlermeldung mit fest reserviertem Platz.
  *
- * Die Zeile ist immer im Dokument – auch ohne Fehler. Damit springt das
- * Layout nicht, sobald eine Meldung erscheint oder verschwindet: Wer gerade
- * auf "Weiter" tippt, trifft auch dann noch den Knopf, wenn sich im selben
- * Moment eine Meldung ueber dem Knopf aufloest. Ausserdem ist der
- * Live-Bereich dadurch schon vorhanden, wenn der Text hineingeschrieben wird –
- * nur so lesen Screenreader ihn zuverlaessig vor.
+ * Die Zeile steht immer im Dokument, auch ohne Fehler. So springt das
+ * Layout nicht, sobald eine Meldung erscheint oder verschwindet – wer
+ * gerade auf „Absenden“ tippt, trifft den Knopf auch dann noch. Außerdem
+ * ist der Live-Bereich schon da, wenn der Text hineinkommt; nur so lesen
+ * Screenreader ihn zuverlässig vor.
  */
 export function Fehlerzeile({ id, fehler }: { id: string; fehler?: string }) {
   return (
-    <p id={id} role="alert" className="field-error min-h-[1.15rem]">
+    <p id={id} role="alert" className="feld-fehler">
       {fehler ?? ''}
     </p>
   );
@@ -24,68 +23,51 @@ export function Fehlerzeile({ id, fehler }: { id: string; fehler?: string }) {
 type FeldProps = {
   id: string;
   label: string;
-  /** Wird unter dem Label angezeigt, z. B. "optional". */
   hinweis?: string;
   fehler?: string;
-  pflicht?: boolean;
-  children: (hilfsAttribute: {
+  optional?: boolean;
+  children: (attribute: {
     id: string;
     'aria-invalid': boolean;
-    'aria-describedby': string | undefined;
+    'aria-describedby': string;
   }) => ReactNode;
 };
 
-/**
- * Einheitlicher Rahmen fuer Formularfelder: Label, optionaler Hinweis und
- * Fehlermeldung – korrekt ueber aria-describedby und aria-invalid verknuepft.
- */
-export default function Feld({ id, label, hinweis, fehler, pflicht = false, children }: FeldProps) {
+export default function Feld({ id, label, hinweis, fehler, optional = false, children }: FeldProps) {
   const hinweisId = hinweis ? `${id}-hinweis` : undefined;
   const fehlerId = `${id}-fehler`;
-  const beschriebenVon = [hinweisId, fehlerId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div>
-      <label htmlFor={id} className="field-label">
+      <label htmlFor={id} className="feld-label">
         {label}
-        {!pflicht && <span className="ml-2 normal-case tracking-normal text-ink/70">(optional)</span>}
+        {optional && <span className="ml-2 normal-case tracking-normal text-leise/80">(optional)</span>}
       </label>
 
       {hinweis && (
-        <p id={hinweisId} className="mb-2 text-xs text-ink">
+        <p id={hinweisId} className="mb-2 text-xs text-leise-stark">
           {hinweis}
         </p>
       )}
 
-      {children({ id, 'aria-invalid': Boolean(fehler), 'aria-describedby': beschriebenVon })}
+      {children({
+        id,
+        'aria-invalid': Boolean(fehler),
+        'aria-describedby': [hinweisId, fehlerId].filter(Boolean).join(' '),
+      })}
 
       <Fehlerzeile id={fehlerId} fehler={fehler} />
     </div>
   );
 }
 
-type RadioGruppeProps<T extends FieldValues> = {
-  control: Control<T>;
-  name: Path<T>;
-  legende: string;
-  optionen: { wert: string; label: string; beschreibung?: string }[];
-  fehler?: string;
-  /** Grosse Kacheln statt schlanker Zeilen. */
-  gross?: boolean;
-};
-
 /**
  * Auswahlgruppe als echte Radio-Buttons.
  *
- * Die Gruppe wird ueber useController an react-hook-form angebunden: bei
- * mehreren Eingabefeldern mit demselben Namen ist das deutlich robuster,
- * als ein und dieselbe register()-Referenz auf alle Felder zu verteilen.
- *
- * Eingabefeld und Beschriftung sind bewusst ueber id/htmlFor verknuepft und
+ * Eingabefeld und Beschriftung sind über id/htmlFor verknüpft und bewusst
  * nicht ineinander verschachtelt: Liegt das Feld im Label, leitet das Label
- * den Klick ein zweites Mal an das Feld weiter – React erkennt die Aenderung
- * dann nicht mehr und onChange bleibt aus, wenn direkt auf den Punkt geklickt
- * wird. Ueber id/htmlFor funktionieren beide Klickziele zuverlaessig.
+ * den Klick ein zweites Mal weiter – React erkennt die Änderung dann nicht
+ * mehr, wenn direkt auf den Punkt geklickt wird. Bitte so lassen.
  */
 export function RadioGruppe<T extends FieldValues>({
   control,
@@ -94,13 +76,20 @@ export function RadioGruppe<T extends FieldValues>({
   optionen,
   fehler,
   gross = false,
-}: RadioGruppeProps<T>) {
+}: {
+  control: Control<T>;
+  name: Path<T>;
+  legende: string;
+  optionen: { wert: string; label: string; zusatz?: string }[];
+  fehler?: string;
+  gross?: boolean;
+}) {
   const { field } = useController({ control, name });
   const fehlerId = `${name}-fehler`;
 
   return (
     <fieldset aria-describedby={fehlerId} aria-invalid={Boolean(fehler)}>
-      <legend className="field-label">{legende}</legend>
+      <legend className="feld-label">{legende}</legend>
 
       <div className={gross ? 'grid grid-cols-1 gap-3 sm:grid-cols-2' : 'flex flex-wrap gap-3'}>
         {optionen.map((option) => {
@@ -108,7 +97,7 @@ export function RadioGruppe<T extends FieldValues>({
           return (
             <div
               key={option.wert}
-              className="flex min-h-11 items-start gap-3 border border-control bg-cream px-4 py-3 transition-colors hover:border-ink has-[:checked]:border-espresso has-[:checked]:bg-espresso has-[:checked]:text-cream"
+              className="flex min-h-11 flex-1 items-start gap-3 rounded-lg border border-akzent-rand bg-white/50 px-4 py-3 transition-colors hover:border-ink has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-creme"
             >
               <input
                 id={optionId}
@@ -118,13 +107,11 @@ export function RadioGruppe<T extends FieldValues>({
                 checked={field.value === option.wert}
                 onChange={() => field.onChange(option.wert)}
                 onBlur={field.onBlur}
-                className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[var(--color-espresso)]"
+                className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[var(--color-ink)]"
               />
               <label htmlFor={optionId} className="flex-1 cursor-pointer">
                 <span className="block text-sm">{option.label}</span>
-                {option.beschreibung && (
-                  <span className="mt-0.5 block text-xs opacity-75">{option.beschreibung}</span>
-                )}
+                {option.zusatz && <span className="mt-0.5 block text-xs opacity-75">{option.zusatz}</span>}
               </label>
             </div>
           );
@@ -136,28 +123,35 @@ export function RadioGruppe<T extends FieldValues>({
   );
 }
 
-type SlotAuswahlProps<T extends FieldValues> = {
+/** Große, gut tippbare Auswahl der Zeitfenster. */
+export function FensterAuswahl<T extends FieldValues>({
+  control,
+  name,
+  optionen,
+}: {
   control: Control<T>;
   name: Path<T>;
   optionen: { wert: string; label: string }[];
-};
-
-/**
- * Grosse, gut tippbare Auswahl der Zeitfenster.
- * Die Fehlermeldung setzt das Formular selbst am umgebenden fieldset –
- * aria-invalid ist an einem Radio-Button nicht zulaessig.
- */
-export function SlotAuswahl<T extends FieldValues>({ control, name, optionen }: SlotAuswahlProps<T>) {
+}) {
   const { field } = useController({ control, name });
 
+  if (optionen.length === 0) {
+    return (
+      <p className="text-sm text-leise-stark">
+        An diesem Tag ist kein Zeitfenster mehr frei genug – ich brauche mindestens{' '}
+        24 Stunden Vorlauf. Bitte wähle einen späteren Tag.
+      </p>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {optionen.map((option) => {
-        const optionId = `${name}-${option.wert.replace(':', '')}`;
+        const optionId = `${name}-${option.wert}`;
         return (
           <div
             key={option.wert}
-            className="flex min-h-[3.25rem] items-center gap-3 border border-control bg-cream px-5 text-base transition-colors hover:border-ink has-[:checked]:border-espresso has-[:checked]:bg-espresso has-[:checked]:text-cream"
+            className="flex min-h-[3.5rem] items-center gap-3 rounded-lg border border-akzent-rand bg-white/50 px-5 transition-colors hover:border-ink has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-creme"
           >
             <input
               id={optionId}
@@ -167,7 +161,7 @@ export function SlotAuswahl<T extends FieldValues>({ control, name, optionen }: 
               checked={field.value === option.wert}
               onChange={() => field.onChange(option.wert)}
               onBlur={field.onBlur}
-              className="h-4 w-4 cursor-pointer accent-[var(--color-espresso)]"
+              className="h-4 w-4 cursor-pointer accent-[var(--color-ink)]"
             />
             <label htmlFor={optionId} className="flex-1 cursor-pointer py-4">
               {option.label}
@@ -179,43 +173,46 @@ export function SlotAuswahl<T extends FieldValues>({ control, name, optionen }: 
   );
 }
 
-type CheckboxProps<T extends FieldValues> = {
+export function Checkbox<T extends FieldValues>({
+  id,
+  control,
+  name,
+  fehler,
+  children,
+}: {
   id: string;
   control: Control<T>;
   name: Path<T>;
   fehler?: string;
   children: ReactNode;
-};
-
-export function Checkbox<T extends FieldValues>({ id, control, name, fehler, children }: CheckboxProps<T>) {
+}) {
   const { field } = useController({ control, name });
   const fehlerId = `${id}-fehler`;
 
   return (
     <div>
-      <div className="flex items-start gap-3 text-sm text-ink">
+      <div className="flex items-start gap-3 text-sm text-leise-stark">
         <input
           id={id}
           type="checkbox"
           name={field.name}
           checked={field.value === true}
-          onChange={(event) => field.onChange(event.target.checked)}
+          onChange={(e) => field.onChange(e.target.checked)}
           onBlur={field.onBlur}
           aria-invalid={Boolean(fehler)}
           aria-describedby={fehlerId}
-          className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[var(--color-espresso)]"
+          className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[var(--color-ink)]"
         />
         <label htmlFor={id} className="flex-1 cursor-pointer">
           {children}
         </label>
       </div>
-
       <Fehlerzeile id={fehlerId} fehler={fehler} />
     </div>
   );
 }
 
-/** Unsichtbares Honeypot-Feld gegen Bots. Wird von Menschen nie ausgefuellt. */
+/** Unsichtbares Honeypot-Feld gegen Bots. */
 export function Honeypot({ registrierung }: { registrierung: Record<string, unknown> }) {
   return (
     <div aria-hidden="true" className="absolute left-[-9999px] top-0 h-0 w-0 overflow-hidden">

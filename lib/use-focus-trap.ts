@@ -12,68 +12,59 @@ const FOKUSSIERBAR = [
 ].join(',');
 
 /**
- * Haelt den Tastaturfokus innerhalb eines geoeffneten Overlays (Mobilmenue,
- * Lightbox) und gibt ihn beim Schliessen an das ausloesende Element zurueck.
+ * Hält den Tastaturfokus in einem geöffneten Overlay und gibt ihn beim
+ * Schließen an das auslösende Element zurück.
  */
-export function useFocusTrap(
-  containerRef: RefObject<HTMLElement | null>,
+export function useFokusFalle(
+  behaelterRef: RefObject<HTMLElement | null>,
   aktiv: boolean,
   beimSchliessen?: () => void,
 ): void {
   useEffect(() => {
     if (!aktiv) return;
+    const behaelter = behaelterRef.current;
+    if (!behaelter) return;
 
-    const container = containerRef.current;
-    if (!container) return;
+    const vorher = document.activeElement as HTMLElement | null;
+    const elemente = () => Array.from(behaelter.querySelectorAll<HTMLElement>(FOKUSSIERBAR));
 
-    const vorherFokussiert = document.activeElement as HTMLElement | null;
+    (elemente()[0] ?? behaelter).focus({ preventScroll: true });
 
-    const elemente = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(FOKUSSIERBAR)).filter(
-        (element) => element.offsetParent !== null || element === document.activeElement,
-      );
-
-    const zuerst = elemente()[0];
-    (zuerst ?? container).focus({ preventScroll: true });
-
-    function beiTastendruck(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
+    function beiTaste(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         beimSchliessen?.();
         return;
       }
-
-      if (event.key !== 'Tab') return;
+      if (e.key !== 'Tab') return;
 
       const liste = elemente();
       if (liste.length === 0) {
-        event.preventDefault();
+        e.preventDefault();
         return;
       }
-
       const erstes = liste[0]!;
       const letztes = liste[liste.length - 1]!;
 
-      if (event.shiftKey && document.activeElement === erstes) {
-        event.preventDefault();
+      if (e.shiftKey && document.activeElement === erstes) {
+        e.preventDefault();
         letztes.focus();
-      } else if (!event.shiftKey && document.activeElement === letztes) {
-        event.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === letztes) {
+        e.preventDefault();
         erstes.focus();
       }
     }
 
-    document.addEventListener('keydown', beiTastendruck);
-
+    document.addEventListener('keydown', beiTaste);
     return () => {
-      document.removeEventListener('keydown', beiTastendruck);
-      vorherFokussiert?.focus?.({ preventScroll: true });
+      document.removeEventListener('keydown', beiTaste);
+      vorher?.focus?.({ preventScroll: true });
     };
-  }, [aktiv, containerRef, beimSchliessen]);
+  }, [aktiv, behaelterRef, beimSchliessen]);
 }
 
 /** Sperrt das Scrollen des Hintergrunds, solange ein Overlay offen ist. */
-export function useScrollLock(aktiv: boolean): void {
+export function useScrollSperre(aktiv: boolean): void {
   useEffect(() => {
     if (!aktiv) return;
     const vorher = document.body.style.overflow;

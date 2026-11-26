@@ -1,69 +1,54 @@
 /**
- * Strukturierte Daten (JSON-LD) fuer die lokale Auffindbarkeit.
- * Wird im <head> der jeweiligen Seite als <script type="application/ld+json">
- * ausgegeben.
+ * Strukturierte Daten für die lokale Auffindbarkeit. Alles stammt aus
+ * content/site.ts – es gibt keine zweite Wahrheit.
  */
 
-import { siteConfig } from '@/content/site-config';
-import { services } from '@/content/services';
-import { faq } from '@/content/faq';
-import { bookingConfig } from '@/content/booking-config';
+import { business, faq, leistungen, termine, seo } from '@/content/site';
 
-const wochentagUri = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const wochentag = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function studioSchema() {
-  const ersteStartzeit = bookingConfig.slotStartTimes[0] ?? '08:00';
-  const letzteStartzeit = bookingConfig.slotStartTimes[bookingConfig.slotStartTimes.length - 1] ?? '10:00';
-  const schlusszeit = `${String(Number(letzteStartzeit.split(':')[0]) + bookingConfig.slotDurationHours).padStart(2, '0')}:00`;
+  const erstes = termine.zeitfenster[0];
+  const letztes = termine.zeitfenster[termine.zeitfenster.length - 1];
 
   return {
     '@context': 'https://schema.org',
     '@type': 'BeautySalon',
     additionalType: 'https://schema.org/TattooParlor',
-    '@id': `${siteConfig.domain}/#studio`,
-    name: siteConfig.studioName,
-    description:
-      'Homestudio für Wimpernverlängerung, Lash- und Browlifting sowie feine Fineline-Tattoos in 26683 Ramsloh, Gemeinde Saterland. Termine ausschließlich nach Vereinbarung, 1:1-Betreuung.',
-    url: siteConfig.domain,
-    telephone: siteConfig.telefon,
-    email: siteConfig.email,
-    image: `${siteConfig.domain}/images/og-bild.jpg`,
-    logo: `${siteConfig.domain}/icon.svg`,
+    '@id': `${business.domain}/#studio`,
+    name: business.name,
+    description: seo.beschreibung,
+    url: business.domain,
+    telephone: business.telefon,
+    email: business.email,
+    image: `${business.domain}${seo.ogBild}`,
     priceRange: 'Preise auf Anfrage',
     currenciesAccepted: 'EUR',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: siteConfig.strasseHausnummer,
-      postalCode: '26683',
-      addressLocality: 'Saterland-Ramsloh',
+      streetAddress: business.strasse,
+      postalCode: business.plz,
+      addressLocality: `${business.gemeinde}-${business.ort}`,
       addressRegion: 'Niedersachsen',
       addressCountry: 'DE',
     },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: siteConfig.geo.lat,
-      longitude: siteConfig.geo.lng,
-    },
+    geo: { '@type': 'GeoCoordinates', latitude: business.geo.lat, longitude: business.geo.lng },
     openingHoursSpecification: [
       {
         '@type': 'OpeningHoursSpecification',
-        dayOfWeek: bookingConfig.openingDays.map((tag) => `https://schema.org/${wochentagUri[tag]}`),
-        opens: ersteStartzeit,
-        closes: schlusszeit,
+        dayOfWeek: termine.arbeitstage.map((tag) => `https://schema.org/${wochentag[tag]}`),
+        opens: erstes?.start ?? '08:00',
+        closes: letztes?.ende ?? '12:00',
       },
     ],
-    areaServed: siteConfig.einzugsgebiet.map((ort) => ({ '@type': 'City', name: ort })),
-    sameAs: [siteConfig.instagramUrl],
+    areaServed: business.einzugsgebiet.map((ort) => ({ '@type': 'City', name: ort })),
+    sameAs: [business.instagramUrl],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'Leistungen',
-      itemListElement: services.map((service) => ({
+      itemListElement: leistungen.map((leistung) => ({
         '@type': 'Offer',
-        itemOffered: {
-          '@type': 'Service',
-          name: service.titel,
-          description: service.kurz,
-        },
+        itemOffered: { '@type': 'Service', name: leistung.titel, description: leistung.kurz },
       })),
     },
   };
@@ -89,17 +74,7 @@ export function breadcrumbSchema(eintraege: { name: string; pfad: string }[]) {
       '@type': 'ListItem',
       position: index + 1,
       name: eintrag.name,
-      item: `${siteConfig.domain}${eintrag.pfad}`,
+      item: `${business.domain}${eintrag.pfad}`,
     })),
-  };
-}
-
-export function websiteSchema() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: siteConfig.studioName,
-    url: siteConfig.domain,
-    inLanguage: 'de-DE',
   };
 }

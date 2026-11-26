@@ -1,30 +1,25 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Seite nicht gefunden',
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = { title: 'Seite nicht gefunden', robots: { index: false, follow: false } };
 
 export default function NichtGefunden() {
   return (
-    <div className="bg-cream pb-24 pt-32 lg:pb-32 lg:pt-40">
-      <div className="container-page">
-        <p className="eyebrow">Fehler 404</p>
-        <h1 className="h-display mt-5 max-w-[16ch]">Diese Seite gibt es nicht.</h1>
-        <p className="measure mt-7 text-ink">
-          Vielleicht hat sich ein Tippfehler eingeschlichen oder der Link ist veraltet. Von hier kommst du
-          überall hin.
+    <div className="bg-creme pb-24 pt-32 lg:pb-32 lg:pt-40">
+      <div className="huelle">
+        <p className="label">Fehler 404</p>
+        <h1 className="h-gross mt-5 max-w-[14ch]">
+          Diese Seite <em className="italic">gibt es nicht.</em>
+        </h1>
+        <p className="mass mt-6 text-leise-stark">
+          Vielleicht hat sich ein Tippfehler eingeschlichen oder der Link ist veraltet. Von hier kommst
+          du überall hin.
         </p>
-
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/" className="btn btn-primary">
+          <Link href="/" className="knopf knopf-voll">
             Zur Startseite
           </Link>
-          <Link href="/galerie" className="btn btn-secondary">
-            Galerie
-          </Link>
-          <Link href="/#termin" className="btn btn-secondary">
+          <Link href="/#termin" className="knopf knopf-linie">
             Termin anfragen
           </Link>
         </div>
