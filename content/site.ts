@@ -15,8 +15,8 @@
 export const business = {
   name: 'CH Beautyroom',
 
-  /** TODO: Vollständiger Name der Inhaberin. */
-  inhaberin: 'Carina Nachname',
+  /** Steht so auf dem Logo und damit auch im Impressum. */
+  inhaberin: 'Carina Hinrichs',
 
   /** TODO: Straße und Hausnummer – Pflichtangabe im Impressum. */
   strasse: 'Straße Hausnummer',
@@ -33,6 +33,10 @@ export const business = {
 
   /** TODO: E-Mail-Adresse für Anfragen – steht öffentlich im Impressum. */
   email: 'hallo@ch-beautyroom.de',
+
+  /** Freigestelltes Logo. Dunkel für helle Flächen, hell für die Fußzeile. */
+  logo: '/logo.png',
+  logoHell: '/logo-hell.png',
 
   instagramHandle: '@chbeautyroom_',
   instagramUrl: 'https://instagram.com/chbeautyroom_',
@@ -194,7 +198,7 @@ export const statement = {
   /** Bausteine des Satzes – in dieser Reihenfolge gesetzt. */
   teile: [
     { art: 'text', inhalt: 'Ich betone deine' },
-    { art: 'bild', src: '/statement/pille-1.webp', alt: 'Nahaufnahme natürlich verlängerter Wimpern' },
+    { art: 'bild', src: '/statement/pille-1.webp', alt: 'Nahaufnahme einer Wimpernverlängerung' },
     { art: 'kursiv', inhalt: 'natürliche' },
     { art: 'text', inhalt: 'Schönheit – sanft, präzise und mit' },
     { art: 'bild', src: '/statement/pille-2.webp', alt: 'Hand beim Setzen einer feinen Tattoolinie' },
@@ -238,7 +242,7 @@ export const leistungen: Leistung[] = [
       'Haltbarkeit je nach Wachstumszyklus vier bis sechs Wochen',
     ],
     bild: '/services/wimpern.webp',
-    alt: 'Geschlossene Augen mit fein gesetzter Wimpernverlängerung',
+    alt: 'Auge mit fein gesetzter Wimpernverlängerung, dichter Kranz',
     imFormular: true,
   },
   {
@@ -253,7 +257,7 @@ export const leistungen: Leistung[] = [
       'Dauer rund eine Stunde',
     ],
     bild: '/services/lash-lifting.webp',
-    alt: 'Naturwimpern nach einem Lash Lifting, deutlich aufgerichtet',
+    alt: 'Augenpartie nach einem Lash Lifting, Naturwimpern deutlich aufgerichtet',
     imFormular: true,
   },
   {
@@ -268,7 +272,7 @@ export const leistungen: Leistung[] = [
       'Dauer rund 45 Minuten',
     ],
     bild: '/services/brow-lifting.webp',
-    alt: 'Augenbrauen nach einem Brow Lifting in gleichmäßiger Form',
+    alt: 'Beide Brauen nach einem Brow Lifting, Härchen gleichmäßig gerichtet',
     imFormular: true,
   },
   {
@@ -342,29 +346,50 @@ export const galerieKategorien: { id: 'alle' | GalerieKategorie; label: string }
 ];
 
 export const galerie: GalerieBild[] = [
-  { src: '/gallery/wimpern-01.webp', alt: 'Dichte Wimpernverlängerung in 1:1-Technik', kategorie: 'wimpern', format: 'quer' },
-  { src: '/gallery/wimpern-02.webp', alt: 'Volumenlashes mit weichem Übergang nach außen', kategorie: 'wimpern', format: 'hoch' },
-  { src: '/gallery/wimpern-03.webp', alt: 'Frisch aufgefüllte Wimpern, Blick nach unten', kategorie: 'wimpern', format: 'quadrat' },
-  { src: '/gallery/wimpern-04.webp', alt: 'Natürliche Wimpernverlängerung bei geöffnetem Auge', kategorie: 'wimpern', format: 'hoch' },
-  { src: '/gallery/wimpern-05.webp', alt: 'Detailaufnahme einzelner Extensions', kategorie: 'wimpern', format: 'quer' },
+  /*
+   *  Echte Arbeiten aus dem Studio. Die Beschreibungen nennen die
+   *  Behandlung, nie eine Person – auf den Fotos sind Kundinnen zu sehen.
+   */
+  {
+    src: '/gallery/wimpern-01.webp',
+    alt: 'Auge mit Wimpernverlängerung, dichter Kranz mit weichem Übergang nach außen',
+    kategorie: 'wimpern',
+    format: 'quer',
+    vorher: '/gallery/wimpern-01-vorher.webp',
+    vorherAlt: 'Dieselbe Augenpartie vor der Behandlung, Naturwimpern ohne Extensions',
+  },
+  {
+    src: '/gallery/wimpern-02.webp',
+    alt: 'Wimpernverlängerung im Profil, Blick nach oben',
+    kategorie: 'wimpern',
+    format: 'hoch',
+  },
   {
     src: '/gallery/lifting-01.webp',
-    alt: 'Naturwimpern nach dem Lash Lifting, aufgerichtet und geschwungen',
+    alt: 'Augenpartie nach Lash und Brow Lifting, Wimpern aufgerichtet, Braue in Form gelegt',
+    kategorie: 'lifting',
+    format: 'hoch',
+  },
+  {
+    src: '/gallery/lifting-02.webp',
+    alt: 'Beide Augen nach Lash und Brow Lifting, offener Blick',
     kategorie: 'lifting',
     format: 'quer',
-    vorher: '/gallery/lifting-01-vorher.webp',
-    vorherAlt: 'Dieselben Naturwimpern vor dem Lifting, gerade nach unten gewachsen',
   },
-  { src: '/gallery/lifting-02.webp', alt: 'Augenbrauen nach einem Brow Lifting', kategorie: 'lifting', format: 'hoch' },
   {
     src: '/gallery/lifting-03.webp',
-    alt: 'Brauen nach dem Lifting in ruhiger, gleichmäßiger Form',
+    alt: 'Brauen nach dem Lifting in gleichmäßiger Form, Härchen gerichtet',
+    kategorie: 'lifting',
+    format: 'hoch',
+  },
+  {
+    src: '/gallery/lifting-04.webp',
+    alt: 'Nahaufnahme einer gelifteten Braue mit aufgerichteten Naturwimpern',
     kategorie: 'lifting',
     format: 'quadrat',
-    vorher: '/gallery/lifting-03-vorher.webp',
-    vorherAlt: 'Dieselben Brauen vor dem Lifting, Härchen wachsen unregelmäßig',
   },
-  { src: '/gallery/lifting-04.webp', alt: 'Lash Lifting mit Färbung, geschlossenes Auge', kategorie: 'lifting', format: 'hoch' },
+
+  /* TODO: Fineline-Arbeiten – hier fehlen noch echte Fotos. */
   { src: '/gallery/fineline-01.webp', alt: 'Floraler Zweig als Fineline-Tattoo am Unterarm', kategorie: 'fineline', format: 'hoch' },
   { src: '/gallery/fineline-02.webp', alt: 'Mandala in feiner Linienführung', kategorie: 'fineline', format: 'quadrat' },
   { src: '/gallery/fineline-03.webp', alt: 'Geburtsblume am Schlüsselbein', kategorie: 'fineline', format: 'hoch' },
@@ -404,12 +429,12 @@ export const instagram = {
   text: 'Neue Arbeiten, freie Termine und kleine Einblicke zeige ich dort zuerst.',
   /** Statische Bilder – es wird keine Instagram-Schnittstelle angebunden. */
   bilder: [
-    { src: '/instagram/01.webp', alt: 'Instagram-Beitrag: Wimpernverlängerung' },
-    { src: '/instagram/02.webp', alt: 'Instagram-Beitrag: Fineline-Tattoo' },
-    { src: '/instagram/03.webp', alt: 'Instagram-Beitrag: Lash Lifting' },
-    { src: '/instagram/04.webp', alt: 'Instagram-Beitrag: Studioecke mit Trockenblumen' },
-    { src: '/instagram/05.webp', alt: 'Instagram-Beitrag: Brow Lifting' },
-    { src: '/instagram/06.webp', alt: 'Instagram-Beitrag: feines Ornament-Tattoo' },
+    { src: '/instagram/01.webp', alt: 'Instagram-Beitrag: Lash und Brow Lifting' },
+    { src: '/instagram/02.webp', alt: 'Instagram-Beitrag: Wimpernverlängerung' },
+    { src: '/instagram/03.webp', alt: 'Instagram-Beitrag: offener Blick nach dem Lifting' },
+    { src: '/instagram/04.webp', alt: 'Instagram-Beitrag: Brauen nach dem Lifting' },
+    { src: '/instagram/05.webp', alt: 'Instagram-Beitrag: Wimpern im Profil' },
+    { src: '/instagram/06.webp', alt: 'Instagram-Beitrag: Nahaufnahme einer gelifteten Braue' },
   ],
 } as const;
 

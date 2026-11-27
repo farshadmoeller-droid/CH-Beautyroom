@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { business, navigation } from '@/content/site';
 
@@ -7,7 +8,19 @@ export default function Footer() {
     <footer className="bg-espresso text-creme">
       <div className="huelle flex flex-col gap-12 py-20 lg:flex-row lg:gap-20">
         <div className="lg:flex-1">
-          <p className="h-abschnitt">{business.name}</p>
+          {/*
+            In der Fußzeile steht das echte Logo. Oben in der Kopfzeile
+            bleibt es bei der gesetzten Wortmarke: Die Zeile „Carina
+            Hinrichs" wäre bei 44 Pixel Höhe nicht mehr lesbar, und ein
+            Logo, das man nicht lesen kann, ist nur noch ein Fleck.
+          */}
+          <Image
+            src={business.logoHell}
+            alt={`${business.name} – Logo`}
+            width={222}
+            height={208}
+            className="h-auto w-[150px]"
+          />
           <p className="mass mt-4 text-creme/70">
             Homestudio in {business.plz} {business.ort}, {business.gemeinde}. Termine nur nach
             Vereinbarung, ausschließlich vormittags und ausschließlich für Frauen.
