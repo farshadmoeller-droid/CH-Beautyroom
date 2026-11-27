@@ -141,8 +141,17 @@
     color: var(--color-akzent-text);
   }
 
+  /* Auf dunklen Flächen (Footer) trägt der Akzent gut – dort 6,4:1. */
   .label-hell {
     color: var(--color-akzent);
+  }
+
+  /*
+   * Auf einem Foto reicht der helle Akzent nicht: Gegen ein sehr helles
+   * Porträt kommt er auf unter 2:1. Dort steht das Label deshalb in Creme.
+   */
+  .label-auf-bild {
+    color: rgb(247 242 238 / 0.95);
   }
 
   /* --- Überschriften ---------------------------------------------------- */
@@ -208,10 +217,18 @@
     color: var(--color-creme);
   }
 
+  /*
+   * Knöpfe auf Fotos bekommen eine leichte eigene Fläche. Ohne sie hängt
+   * die Lesbarkeit ihrer kleinen Beschriftung davon ab, wie hell das Bild
+   * an genau dieser Stelle ist – bei einem sehr hellen Porträt reicht der
+   * Verlauf allein nicht aus.
+   */
   .knopf-hell {
-    background-color: transparent;
+    background-color: rgb(20 17 16 / 0.3);
     color: var(--color-creme);
     border: 1px solid rgb(247 242 238 / 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
   }
 
   .knopf-hell:hover {
@@ -283,6 +300,21 @@
     min-height: 1.15rem;
     font-size: 0.85rem;
     color: #9b2c19;
+  }
+
+  /*
+   * Höhe des Hero mit laufender Bildsequenz. Ohne Bewegung bleibt es bei
+   * einer Bildschirmhöhe – diese Ausnahme steht bewusst im CSS und nicht im
+   * JavaScript, damit die Höhe nach dem Laden nicht springt.
+   */
+  .hero-lang {
+    height: calc(var(--hero-laenge, 3.5) * 100svh);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-lang {
+      height: 100svh;
+    }
   }
 
   /* --- Bogenform für Bilder ---------------------------------------------- */
@@ -357,14 +389,22 @@
     display: none;
   }
 
-  /* Weicher Verlauf, damit Text auf Bildern lesbar bleibt. */
+  /*
+   * Weicher Verlauf, damit Text auf Bildern lesbar bleibt.
+   *
+   * Unten deutlich kräftiger als oben: Dort steht der Text, während das
+   * Gesicht im oberen Drittel frei bleiben soll. Die Werte sind an einem
+   * sehr hellen Porträt gemessen – bei einem dunkleren Foto wirken sie
+   * eher zu stark als zu schwach, was unkritisch ist.
+   */
   .schleier {
     background: linear-gradient(
       to bottom,
-      rgb(20 17 16 / 0.42) 0%,
-      rgb(20 17 16 / 0.18) 35%,
-      rgb(20 17 16 / 0.32) 70%,
-      rgb(20 17 16 / 0.68) 100%
+      rgb(20 17 16 / 0.22) 0%,
+      rgb(20 17 16 / 0.26) 25%,
+      rgb(20 17 16 / 0.52) 45%,
+      rgb(20 17 16 / 0.74) 70%,
+      rgb(20 17 16 / 0.88) 100%
     );
   }
 }

@@ -16,6 +16,15 @@ const MOBIL_BIS = 768;
 /** Die Bildfolge läuft über die ersten 85 % – danach darf das Bild stehen. */
 const SEQUENZ_ANTEIL = 0.85;
 
+/**
+ * Ob überhaupt eine Bildfolge vorliegt, steht schon zur Bauzeit fest
+ * (`hero.sequenz.anzahl` in content/site.ts). Das hier aus der
+ * Konfiguration abzuleiten statt erst im Browser zu prüfen, hält Server
+ * und Browser beim ersten Rendern identisch – sonst springt die Höhe der
+ * Sektion nach dem Laden.
+ */
+const HAT_SEQUENZ = hero.sequenz.anzahl > 0;
+
 export default function HeroSequence() {
   const reduziert = useBewegungReduziert();
   const [mobil, setMobil] = useState<boolean | null>(null);
@@ -34,7 +43,7 @@ export default function HeroSequence() {
 
   // Erst laden, wenn feststeht, welche Größe gebraucht wird – und niemals
   // bei reduzierter Bewegung, dann genügt das Standbild.
-  const sequenzAktiv = mobil !== null && !reduziert;
+  const sequenzAktiv = HAT_SEQUENZ && mobil !== null && !reduziert;
 
   const { status, bildFuerFortschritt } = useImageSequence({
     vorlage: mobil ? hero.sequenz.pfadMobil : hero.sequenz.pfad,
@@ -126,10 +135,13 @@ export default function HeroSequence() {
   const ladend = nutzeSequenz && !status.bereit;
   const prozent = Math.round(status.fortschritt * 100);
 
+  /** Ohne laufende Sequenz gibt es keinen Fortschritt – dann alles zeigen. */
+  const sofort = reduziert || !HAT_SEQUENZ;
+
   // Die Headline erscheint Wort für Wort über die ersten 30 % des Scrollens.
   const wortSchwelle = (index: number) => 0.04 + index * 0.075;
 
-  const schlusswortSichtbar = reduziert || fortschritt > 0.72;
+  const schlusswortSichtbar = sofort || fortschritt > 0.72;
   const schlusswortStil: React.CSSProperties = {
     fontFamily: 'var(--font-serif)',
     fontStyle: 'italic',
@@ -145,13 +157,10 @@ export default function HeroSequence() {
     <section
       ref={sektionRef}
       aria-labelledby="hero-titel"
-      className="relative bg-espresso"
-      style={{ height: reduziert ? 'auto' : `${hero.scrollLaenge * 100}svh` }}
+      className={`relative bg-espresso ${HAT_SEQUENZ ? 'hero-lang' : 'h-[100svh]'}`}
+      style={HAT_SEQUENZ ? ({ '--hero-laenge': hero.scrollLaenge } as React.CSSProperties) : undefined}
     >
-      <div
-        className="sticky top-0 flex h-[100svh] items-end overflow-hidden"
-        style={reduziert ? { position: 'relative', height: '100svh' } : undefined}
-      >
+      <div className="sticky top-0 flex h-[100svh] items-end overflow-hidden">
         {/* Bildebene */}
         {nutzeSequenz ? (
           <canvas
@@ -169,6 +178,10 @@ export default function HeroSequence() {
               priority
               sizes="100vw"
               className="object-cover"
+              // Das Standbild ist hochkant, der Hero auf dem Desktop quer.
+              // Ohne diese Verankerung schneidet object-cover mittig und
+              // damit das Gesicht ab. Der Wert steht in content/site.ts.
+              style={{ objectPosition: hero.bildAusschnitt }}
             />
           </div>
         )}
@@ -200,11 +213,11 @@ export default function HeroSequence() {
         <div className="huelle relative z-10 w-full pb-20 pt-28 sm:pb-24">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-stretch lg:justify-between">
             <div className="lg:self-end">
-              <p className="label label-hell">{hero.eyebrow}</p>
+              <p className="label label-auf-bild">{hero.eyebrow}</p>
 
               <h1 id="hero-titel" className="h-riesig mt-6 text-creme">
                 {hero.headline.map((wort, index) => {
-                  const sichtbar = reduziert || fortschritt >= wortSchwelle(index);
+                  const sichtbar = sofort || fortschritt >= wortSchwelle(index);
                   return (
                     // Das Leerzeichen gehört in den Textfluss, nicht in einen
                     // Rand: sonst lesen Screenreader die Wörter zusammen.
@@ -239,7 +252,7 @@ export default function HeroSequence() {
             {/* Rechte Spalte: Karte oben, Schlusswort unten – so können sich
                 die beiden auf keiner Bildschirmhöhe überlagern. */}
             <div className="hidden lg:flex lg:flex-col lg:items-end lg:justify-between lg:gap-8">
-              <StatsCard fortschritt={reduziert ? 1 : fortschritt} reduziert={reduziert} />
+              <StatsCard fortschritt={sofort ? 1 : fortschritt} reduziert={sofort} />
               <p aria-hidden="true" className="pointer-events-none" style={schlusswortStil}>
                 {hero.schlusswort}
               </p>

@@ -108,8 +108,15 @@ export const hero = {
     pfad: '/sequence/frame_{i}.webp',
     pfadMobil: '/sequence-mobile/frame_{i}.webp',
 
-    /** TODO: Anzahl der Frames, nachdem du sie erzeugt hast. */
-    anzahl: 150,
+    /**
+     * Anzahl der Frames.
+     *
+     * 0 bedeutet: keine Sequenz – der Hero zeigt dann das Standbild aus
+     * `fallbackBild` mit sanftem Parallax. Sobald du aus deinem Video
+     * Frames erzeugt hast (siehe README), trägst du hier ihre Anzahl ein,
+     * und die Scroll-Sequenz läuft.
+     */
+    anzahl: 0,
 
     /** Auf Mobilgeräten nur jedes n-te Frame laden. */
     mobilSchrittweite: 2,
@@ -120,7 +127,17 @@ export const hero = {
 
   /** Wird gezeigt, wenn keine Sequenz da ist oder Bewegung reduziert wird. */
   fallbackBild: '/hero-fallback.webp',
-  fallbackAlt: 'Porträtaufnahme im Studio des CH Beautyroom',
+  fallbackAlt:
+    'Carina, Inhaberin des CH Beautyroom, sitzt in hellem Blazer auf einem Hocker im Studio, neben ihr Pampasgras in einer Korbvase',
+
+  /**
+   * Bildausschnitt des Standbilds (CSS object-position).
+   *
+   * Das Foto ist hochkant, der Hero auf dem Desktop quer – ohne Angabe
+   * würde mittig beschnitten und das Gesicht verschwinden. Der zweite Wert
+   * ist die senkrechte Verankerung: kleiner = weiter oben.
+   */
+  bildAusschnitt: 'center 20%',
 
   /** Wie lang die angeheftete Sektion scrollt – in Bildschirmhöhen. */
   scrollLaenge: 3.5,
@@ -364,7 +381,7 @@ export const ueberMich = {
   label: 'Über mich',
   titel: 'Schön, dass du da bist',
   portrait: '/about/portrait.webp',
-  portraitAlt: 'Porträt der Inhaberin des CH Beautyroom',
+  portraitAlt: 'Carina, Inhaberin des CH Beautyroom, in hellem Blazer vor einer weißen Wand',
   /** TODO: Carinas eigene Worte, zwei bis vier Sätze. */
   absaetze: [
     'Ich bin Carina und führe den CH Beautyroom als mein eigenes kleines Studio – zu Hause, in Ramsloh. Angefangen hat alles mit Wimpern, dazu kamen Lifting und schließlich das Tätowieren.',
