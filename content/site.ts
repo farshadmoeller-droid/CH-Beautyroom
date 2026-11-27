@@ -34,9 +34,18 @@ export const business = {
   /** TODO: E-Mail-Adresse für Anfragen – steht öffentlich im Impressum. */
   email: 'hallo@ch-beautyroom.de',
 
-  /** Freigestelltes Logo. Dunkel für helle Flächen, hell für die Fußzeile. */
+  /**
+   * Freigestelltes Logo. Dunkel für helle Flächen, hell für dunkle.
+   *
+   * `logo` ist die ganze Wortmarke mit Namenszeile – die steht in der
+   * Fußzeile, wo sie groß genug ist. Oben in der Kopfzeile steht nur
+   * `logoMarke`, das Monogramm: Bei 34 Pixel Höhe wäre die Zeile
+   * „Carina Hinrichs" nicht mehr lesbar.
+   */
   logo: '/logo.png',
   logoHell: '/logo-hell.png',
+  logoMarke: '/logo-mark.png',
+  logoMarkeHell: '/logo-mark-hell.png',
 
   instagramHandle: '@chbeautyroom_',
   instagramUrl: 'https://instagram.com/chbeautyroom_',
