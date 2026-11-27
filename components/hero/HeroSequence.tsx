@@ -155,6 +155,7 @@ export default function HeroSequence() {
 
   return (
     <section
+      id="hero"
       ref={sektionRef}
       aria-labelledby="hero-titel"
       className={`relative bg-espresso ${HAT_SEQUENZ ? 'hero-lang' : 'h-[100svh]'}`}
@@ -212,7 +213,10 @@ export default function HeroSequence() {
         {/* Text und Karte */}
         <div className="huelle relative z-10 w-full pb-20 pt-28 sm:pb-24">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-stretch lg:justify-between">
-            <div className="lg:self-end">
+            {/* Auf grossen Schirmen bleibt die Textspalte schmal: Die
+                Headline umbricht dann drei Mal und laeuft nicht quer ueber
+                das Gesicht im Bild. */}
+            <div className="lg:max-w-[54%] lg:self-end">
               <p className="label label-auf-bild">{hero.eyebrow}</p>
 
               <h1 id="hero-titel" className="h-riesig mt-6 text-creme">

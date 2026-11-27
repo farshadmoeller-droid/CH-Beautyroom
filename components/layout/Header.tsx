@@ -14,10 +14,19 @@ export default function Header() {
   const [gescrollt, setGescrollt] = useState(false);
   const [offen, setOffen] = useState(false);
   const pfad = usePathname();
+  /**
+   * Liegt unter der Kopfzeile ein Hero mit Bild?
+   *
+   * Der Startwert kommt aus dem Pfad, damit schon die vom Server gelieferte
+   * Fassung stimmt und nichts aufblitzt. Danach entscheidet das Vorhandensein
+   * der Hero-Sektion – das trägt auch, wenn die Seite nicht auf der Wurzel
+   * einer Domain liegt, etwa in einer Vorschau unter einem Unterpfad.
+   */
+  const [hatHero, setHatHero] = useState(() => pfad === '/');
   const overlayRef = useRef<HTMLDivElement>(null);
   const vorherFokussiert = useRef<HTMLElement | null>(null);
 
-  const ueberHero = pfad === '/' && !gescrollt && !offen;
+  const ueberHero = hatHero && !gescrollt && !offen;
   const schliessen = useCallback(() => setOffen(false), []);
 
   useEffect(() => {
@@ -28,6 +37,8 @@ export default function Header() {
   }, []);
 
   useEffect(() => setOffen(false), [pfad]);
+
+  useEffect(() => setHatHero(document.getElementById('hero') !== null), [pfad]);
 
   // Overlay: Scrollsperre, Fokus-Falle und Escape.
   useEffect(() => {

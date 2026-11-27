@@ -156,7 +156,12 @@
 
   /* --- Überschriften ---------------------------------------------------- */
   .h-riesig {
-    font-size: clamp(3rem, 11vw, 9rem);
+    /*
+     * Die Groesse haengt an der Breite, ist aber zusaetzlich an die Hoehe
+     * gebunden: Auf flachen Fenstern (Laptop im Vollbild) wuerde die
+     * dreizeilige Headline den Hero sonst nach oben heraussprengen.
+     */
+    font-size: min(clamp(3rem, 11vw, 9rem), 15vh);
     line-height: 0.92;
   }
 

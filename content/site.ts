@@ -137,7 +137,7 @@ export const hero = {
    * würde mittig beschnitten und das Gesicht verschwinden. Der zweite Wert
    * ist die senkrechte Verankerung: kleiner = weiter oben.
    */
-  bildAusschnitt: 'center 20%',
+  bildAusschnitt: 'center 6%',
 
   /** Wie lang die angeheftete Sektion scrollt – in Bildschirmhöhen. */
   scrollLaenge: 3.5,
