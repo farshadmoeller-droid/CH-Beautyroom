@@ -305,12 +305,12 @@ app/
 components/
   providers/SmoothScroll  Lenis, gekoppelt an GSAP
   layout/                 Header, Footer, Logo, Rahmen der Rechtsseiten
-  hero/                   Canvas-Sequenz, Fokus-Ringe, Kennzahlen-Karte
+  hero/                   Hero mit Standbild, Kennzahlen-Karte
   sections/               Statement, Leistungen, Ablauf, Galerie,
-                          Lightbox, Vorher-Nachher, Über mich,
-                          Instagram, FAQ
+                          Filterleiste, Lightbox, Vorher-Nachher,
+                          Über mich, Instagram, FAQ
   booking/                Reiter, beide Formulare, Kalender, Eingabefelder
-  ui/                     Reveal (Scroll-Einblendung), Icons
+  ui/                     Enthuellen (Scroll-Einblendung), Icons
 
 content/
   site.ts                 ALLE Inhalte und Daten – hier änderst du
@@ -337,16 +337,31 @@ scripts/                  Erzeugt die Platzhalterbilder
 
 Kurz begründet, damit spätere Änderungen nichts kaputtmachen:
 
+- **Bewegung läuft über CSS, nicht über eine Bibliothek.** Erscheinen,
+  Aufklappen, Knöpfe, Überblendungen und das Großbild sind Übergänge auf
+  `transform` und `opacity`. Die laufen auf dem Compositor und bleiben
+  deshalb flüssig, während der Browser noch lädt – eine Animation über
+  `requestAnimationFrame` verliert genau in diesem Moment Bilder.
+  Ausgelöst wird per `IntersectionObserver` (`components/ui/Enthuellen`).
+- **GSAP steht nur noch an einer Stelle:** der Einfärbung im
+  Aussage-Satz, wo ein Wert wirklich am Scroll-Fortschritt hängt und sich
+  beim Zurückscrollen umkehren muss. Dazu kommt der Parallax im Hero.
+  Alles andere braucht es nicht.
 - **Lenis treibt ScrollTrigger an, nicht umgekehrt.** In
   `SmoothScroll.tsx` meldet Lenis jeden Scroll-Schritt an ScrollTrigger,
-  und GSAPs Ticker treibt Lenis an. Ohne diese Kopplung laufen angeheftete
-  Sektionen und das weiche Scrollen auseinander.
-- **Der Hero wird per CSS `sticky` angeheftet, nicht per GSAP-Pin.** Das
-  kommt ohne Pin-Spacer aus und vermeidet Layoutsprünge beim Neuberechnen.
-  ScrollTrigger liefert nur den Fortschritt.
-- **Die Bildsequenz lädt das erste Frame zuerst und einzeln**, danach den
-  Rest mit acht gleichzeitigen Anfragen. So steht sofort ein Bild, während
-  im Hintergrund weitergeladen wird.
+  und GSAPs Ticker treibt Lenis an. Ohne diese Kopplung rechnet
+  ScrollTrigger mit veralteten Positionen.
+- **Die Leistungen sind eine Bahn mit Einrastpunkten, keine angeheftete
+  Sektion.** Die ursprünglich geplante waagerechte Falle wurde gebaut und
+  wieder entfernt: Die Karten sind zusammen mit Überschrift und Kopfzeile
+  höher als ein Laptop-Fenster, sie hätte also Inhalt gekostet, und sie
+  nimmt der Besucherin das Scrollen aus der Hand. Die waagerechte Geste
+  ist geblieben, als echtes Scrollen.
+- **Kurven und Dauern stehen als Variablen in `globals.css`.** Drei Kurven
+  (`--ease-out`, `--ease-in-out`, `--ease-drawer`), fünf Dauern.
+  Bedienelemente bleiben unter 300 ms; nur das Erscheinen beim Scrollen
+  darf länger laufen, weil es keine Bedienung ist. `ease-in` kommt
+  nirgends vor – es beginnt langsam, genau wenn jemand hinsieht.
 - **Die Vorlaufzeit gilt pro Zeitfenster, nicht pro Tag.** Wer morgens um
   neun anfragt, bekommt für den nächsten Tag noch das 10-Uhr-Fenster, aber
   nicht mehr das um acht – das läge nur 23 Stunden entfernt.
@@ -361,9 +376,15 @@ Kurz begründet, damit spätere Änderungen nichts kaputtmachen:
   abgedunkelte Varianten für Text und für Ränder von Bedienelementen
   (`--color-akzent-text`, `--color-akzent-rand`, `--color-leise-stark`).
   Fließtext erreicht mindestens 4,5:1, Bedienelemente mindestens 3:1.
-- **Bewegung ist optional.** Bei „Bewegung reduzieren“ entfallen Lenis, die
-  Bildsequenz und alle Scroll-Animationen; stattdessen erscheint das
-  Standbild und alle Inhalte stehen sofort da.
+- **Bewegung ist optional, nicht abgeschaltet.** Bei „Bewegung
+  reduzieren“ entfallen Lenis, der Parallax und jede Verschiebung; das
+  Aufblenden bleibt, weil es beim Verstehen hilft. Die Kennzahlen stehen
+  dann sofort auf ihrem Endwert.
+- **Kontrast über dem Foto wird gemessen, nicht geschätzt.** Das Foto ist
+  sehr hell, deshalb hat die Wortmarke einen eigenen schmalen Verlauf
+  (`.kopf-schutz`), das Label im Hero eine eigene Fläche und die
+  Glaskarte eine dunkle statt heller Tönung. Gemessen erreichen alle
+  Texte über dem Bild ihre WCAG-Grenze.
 
 ---
 

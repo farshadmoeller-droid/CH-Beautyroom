@@ -1,57 +1,47 @@
 import Image from 'next/image';
-import Reveal from '@/components/ui/Reveal';
-import { InstagramIcon } from '@/components/ui/Icons';
+import Enthuellen from '@/components/ui/Enthuellen';
 import { business, instagram } from '@/content/site';
 
 /**
- * Statische Bilder, kein eingebettetes Instagram-Widget: So wird erst beim
- * Klick auf den Link eine Verbindung zu Meta aufgebaut – vorher fließen
- * keine Daten ab, und die Seite bleibt ohne Einwilligungsbanner.
+ * Instagram-Vorschau mit festen Bildern.
+ *
+ * Es wird keine Schnittstelle angebunden: Ein eingebundenes Instagram-Feed
+ * würde fremde Skripte und Cookies nachladen – dann bräuchte die Seite ein
+ * Einwilligungsbanner, und das will sie ausdrücklich nicht.
  */
 export default function InstagramTeaser() {
   return (
-    <section aria-labelledby="instagram-titel" className="abschnitt bg-creme">
+    <section aria-labelledby="instagram-titel" className="bg-blush py-24 sm:py-28">
       <div className="huelle">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <Enthuellen className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between" stufe={0} weg={14}>
           <div>
             <p className="label">{instagram.label}</p>
-            <h2 id="instagram-titel" className="h-mittel mt-5 max-w-[16ch]">
+            <h2 id="instagram-titel" className="h-abschnitt mt-4">
               {instagram.titel}
             </h2>
             <p className="mass mt-4 text-leise-stark">{instagram.text}</p>
           </div>
-
           <a
             href={business.instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="knopf knopf-linie whitespace-nowrap"
+            className="knopf knopf-umriss shrink-0"
           >
-            <InstagramIcon className="h-4 w-4" />
-            Folge mir {business.instagramHandle}
+            {business.instagramHandle}
           </a>
-        </div>
+        </Enthuellen>
 
-        <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 lg:gap-4">
-          {instagram.bilder.map((bild, index) => (
-            <li key={bild.src}>
-              <Reveal delay={index * 0.05}>
-                <a
-                  href={business.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative block aspect-square overflow-hidden rounded-xl bg-blush"
-                >
-                  <Image
-                    src={bild.src}
-                    alt={bild.alt}
-                    fill
-                    loading="lazy"
-                    sizes="(min-width: 1024px) 16vw, 45vw"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                </a>
-              </Reveal>
+        <ul className="mt-10 grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-6">
+          {instagram.bilder.map((bild) => (
+            <li key={bild.src} className="group relative aspect-square overflow-hidden rounded-xl bg-creme">
+              <Image
+                src={bild.src}
+                alt={bild.alt}
+                fill
+                sizes="(min-width: 1024px) 15vw, 30vw"
+                className="object-cover"
+                style={{ transition: 'transform var(--dauer-flaeche) var(--ease-out)' }}
+              />
             </li>
           ))}
         </ul>

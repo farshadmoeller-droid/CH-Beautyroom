@@ -1,67 +1,94 @@
 'use client';
 
 import Image from 'next/image';
-import { useId, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
+/**
+ * Vorher-Nachher-Regler.
+ *
+ * Hier wird bewusst nichts animiert: Der Griff folgt dem Finger 1:1.
+ * Jede Glättung würde sich wie Verzögerung anfühlen. Nur das Loslassen
+ * und die Pfeiltasten bekommen einen kurzen Übergang, damit der Sprung
+ * nicht hart ist.
+ */
 type Props = {
   vorher: string;
   vorherAlt: string;
   nachher: string;
   nachherAlt: string;
-  /** Auf dunklem Grund (Lightbox) werden die Marken hell gesetzt. */
-  dunkel?: boolean;
 };
 
-/**
- * Vorher-Nachher-Vergleich mit Schieberegler.
- *
- * Der Regler ist ein echter <input type="range">: Damit funktioniert er
- * mit Maus, Finger und Tastatur gleichermaßen, ohne eigenes Zeigerhandling.
- */
-export default function BeforeAfter({ vorher, vorherAlt, nachher, nachherAlt, dunkel = false }: Props) {
-  const [position, setPosition] = useState(50);
-  const id = useId();
+export default function BeforeAfter({ vorher, vorherAlt, nachher, nachherAlt }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [anteil, setAnteil] = useState(50);
+  const [zieht, setZieht] = useState(false);
 
-  const marke = dunkel
-    ? 'bg-espresso/80 text-creme'
-    : 'bg-creme/90 text-ink';
+  const ausPosition = useCallback((x: number) => {
+    const feld = ref.current?.getBoundingClientRect();
+    if (!feld) return;
+    const roh = ((x - feld.left) / feld.width) * 100;
+    setAnteil(Math.min(100, Math.max(0, roh)));
+  }, []);
 
   return (
-    <figure className="w-full">
-      <div className="relative aspect-4/3 w-full select-none overflow-hidden rounded-xl bg-blush">
-        <Image src={nachher} alt={nachherAlt} fill sizes="(min-width: 1024px) 45vw, 92vw" className="object-cover" />
+    <div
+      ref={ref}
+      className="relative aspect-[4/3] w-full touch-none select-none overflow-hidden rounded-xl bg-blush"
+      onPointerDown={(e) => {
+        // Zeiger einfangen: Das Ziehen läuft weiter, auch wenn der Finger
+        // das Bild verlässt.
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setZieht(true);
+        ausPosition(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (!zieht) return;
+        ausPosition(e.clientX);
+      }}
+      onPointerUp={(e) => {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        setZieht(false);
+      }}
+      onPointerCancel={() => setZieht(false)}
+    >
+      <Image src={nachher} alt={nachherAlt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
 
-        {/* Das Vorher-Bild wird von links beschnitten. Der innere Rahmen
-            rechnet die Breite zurück, damit das Bild nicht mitskaliert. */}
-        <div className="absolute inset-0 overflow-hidden" style={{ width: `${position}%` }}>
-          <div className="relative h-full" style={{ width: `calc(100% * 100 / ${Math.max(position, 1)})` }}>
-            <Image src={vorher} alt={vorherAlt} fill sizes="(min-width: 1024px) 45vw, 92vw" className="object-cover" />
-          </div>
-        </div>
-
-        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 w-px bg-creme" style={{ left: `${position}%` }} />
-        <span aria-hidden="true" className={`pointer-events-none absolute left-3 top-3 rounded-full px-2.5 py-1 text-[0.58rem] uppercase tracking-[0.2em] ${marke}`}>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{
+          clipPath: `inset(0 ${100 - anteil}% 0 0)`,
+          transition: zieht ? 'none' : 'clip-path var(--dauer-klein) var(--ease-out)',
+        }}
+      >
+        <Image src={vorher} alt={vorherAlt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        <span className="label absolute left-4 top-4 rounded-full bg-espresso/60 px-3 py-1 text-creme">
           Vorher
-        </span>
-        <span aria-hidden="true" className={`pointer-events-none absolute right-3 top-3 rounded-full px-2.5 py-1 text-[0.58rem] uppercase tracking-[0.2em] ${marke}`}>
-          Nachher
         </span>
       </div>
 
-      <label htmlFor={id} className={`feld-label mt-4 ${dunkel ? 'text-creme/70' : ''}`}>
-        Vergleich verschieben
-      </label>
+      <span className="label absolute right-4 top-4 rounded-full bg-espresso/60 px-3 py-1 text-creme">
+        Nachher
+      </span>
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 w-px bg-creme"
+        style={{
+          left: `${anteil}%`,
+          transition: zieht ? 'none' : 'left var(--dauer-klein) var(--ease-out)',
+        }}
+      />
+
       <input
-        id={id}
         type="range"
         min={0}
         max={100}
         step={1}
-        value={position}
-        onChange={(e) => setPosition(Number(e.target.value))}
-        aria-valuetext={`${position} Prozent des Vorher-Bildes sichtbar`}
-        className="h-11 w-full accent-[var(--color-akzent-rand)]"
+        value={Math.round(anteil)}
+        onChange={(e) => setAnteil(Number(e.target.value))}
+        aria-label="Vergleich zwischen vorher und nachher"
+        className="absolute inset-x-0 bottom-0 h-11 w-full cursor-ew-resize opacity-0"
       />
-    </figure>
+    </div>
   );
 }

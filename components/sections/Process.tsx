@@ -2,120 +2,101 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollTrigger, bewegungReduziert } from '@/lib/gsap';
+import Enthuellen from '@/components/ui/Enthuellen';
 import { ablauf } from '@/content/site';
 
 /**
- * „So arbeite ich“ – drei Schritte.
+ * Drei Schritte, daneben ein Bild, das mitwechselt.
  *
- * Links eine senkrechte Linie, die sich beim Scrollen füllt; rechts ein
- * Bild in Bogenform, das pro Schritt überblendet. Der jeweils aktive
- * Schritt steht in voller Farbe, die anderen treten zurück.
+ * Der Wechsel ist eine Überblendung, kein Scroll-Wert – deshalb reicht
+ * ein IntersectionObserver und ein CSS-Übergang auf `opacity`. Kein GSAP.
+ *
+ * Die beiden Bilder liegen übereinander. Weil zwei Fotos während der
+ * Überblendung kurz als zwei Dinge gelesen werden, bekommt das
+ * abtretende Bild zusätzlich eine leichte Unschärfe: Dadurch
+ * verschmelzen sie zu einer Bewegung statt zu einem Tausch.
  */
 export default function Process() {
-  const sektionRef = useRef<HTMLElement>(null);
-  const [fortschritt, setFortschritt] = useState(0);
-  const [reduziert, setReduziert] = useState(false);
+  const [aktiv, setAktiv] = useState(0);
+  const schritteRef = useRef<(HTMLLIElement | null)[]>([]);
 
   useEffect(() => {
-    const sektion = sektionRef.current;
-    if (!sektion) return;
+    const elemente = schritteRef.current.filter((e): e is HTMLLIElement => e !== null);
+    if (elemente.length === 0 || typeof IntersectionObserver === 'undefined') return;
 
-    if (bewegungReduziert()) {
-      setReduziert(true);
-      return;
-    }
+    const beobachter = new IntersectionObserver(
+      (eintraege) => {
+        for (const eintrag of eintraege) {
+          if (!eintrag.isIntersecting) continue;
+          const index = elemente.indexOf(eintrag.target as HTMLLIElement);
+          if (index >= 0) setAktiv(index);
+        }
+      },
+      // Das mittlere Drittel des Fensters entscheidet, welcher Schritt gilt.
+      { rootMargin: '-35% 0px -45% 0px', threshold: 0 },
+    );
 
-    const ausloeser = ScrollTrigger.create({
-      trigger: sektion,
-      start: 'top 65%',
-      end: 'bottom 85%',
-      onUpdate: (selbst) => setFortschritt(selbst.progress),
-    });
-
-    return () => ausloeser.kill();
+    for (const e of elemente) beobachter.observe(e);
+    return () => beobachter.disconnect();
   }, []);
 
-  const anzahl = ablauf.schritte.length;
-  // Aktiver Schritt aus dem Fortschritt ableiten.
-  const aktiv = reduziert ? -1 : Math.min(Math.floor(fortschritt * anzahl), anzahl - 1);
-
   return (
-    <section ref={sektionRef} id="ablauf" aria-labelledby="ablauf-titel" className="abschnitt bg-creme">
-      <div className="huelle">
+    <section id="ablauf" aria-labelledby="ablauf-titel" className="huelle py-28 sm:py-36">
+      <Enthuellen stufe={0} weg={16}>
         <p className="label">{ablauf.label}</p>
-        <h2 id="ablauf-titel" className="h-gross mt-5 max-w-[14ch]">
+        <h2 id="ablauf-titel" className="h-abschnitt mt-4">
           {ablauf.titel}
         </h2>
+      </Enthuellen>
 
-        <div className="mt-14 grid grid-cols-1 gap-12 lg:mt-20 lg:grid-cols-12 lg:gap-16">
-          {/* Zeitachse mit den Schritten */}
-          <ol className="relative lg:col-span-6">
-            {/* Grundlinie und gefüllter Anteil */}
-            <span aria-hidden="true" className="absolute left-[0.3rem] top-2 bottom-2 w-px bg-ink/12" />
-            <span
-              aria-hidden="true"
-              className="absolute left-[0.3rem] top-2 w-px origin-top bg-akzent-rand transition-transform duration-500"
-              style={{
-                bottom: '0.5rem',
-                transform: `scaleY(${reduziert ? 1 : Math.min(fortschritt * 1.15, 1)})`,
-                transitionTimingFunction: 'var(--ease-ruhig)',
-              }}
-            />
-
-            {ablauf.schritte.map((schritt, index) => {
-              const istAktiv = reduziert || index <= aktiv;
-              return (
-                <li key={schritt.nummer} className="relative pb-12 pl-10 last:pb-0">
-                  <span
-                    aria-hidden="true"
-                    className={`absolute left-0 top-1.5 block h-[0.7rem] w-[0.7rem] rounded-full border transition-colors duration-500 ${
-                      istAktiv ? 'border-akzent-rand bg-akzent-rand' : 'border-ink/20 bg-creme'
-                    }`}
-                  />
-                  <div
-                    className="transition-opacity duration-500"
-                    style={{ opacity: istAktiv ? 1 : 0.42, transitionTimingFunction: 'var(--ease-ruhig)' }}
-                  >
-                    <p className="text-[0.68rem] uppercase tracking-[0.24em] text-akzent-text">
-                      Schritt {schritt.nummer}
-                    </p>
-                    <h3 className="h-klein mt-3 font-serif">{schritt.titel}</h3>
-                    <p className="mass mt-3 text-leise-stark">{schritt.text}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-
-          {/* Bild in Bogenform, überblendet pro Schritt */}
-          <div className="lg:col-span-5 lg:col-start-8">
-            <div className="bogen relative mx-auto aspect-4/5 w-full max-w-sm bg-blush lg:sticky lg:top-28 lg:max-w-none">
-              {ablauf.schritte.map((schritt, index) => {
-                const sichtbar = reduziert ? index === 0 : index === Math.max(aktiv, 0);
-                return (
-                  <Image
-                    key={schritt.nummer}
-                    src={schritt.bild}
-                    alt={schritt.alt}
-                    fill
-                    sizes="(min-width: 1024px) 38vw, 90vw"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    className="object-cover transition-opacity duration-700"
-                    style={{ opacity: sichtbar ? 1 : 0, transitionTimingFunction: 'var(--ease-ruhig)' }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Für Screenreader und ohne Bewegung: welche Aufnahme gerade zu sehen ist. */}
-            <p className="sr-only" aria-live="polite">
-              {reduziert
-                ? ablauf.schritte[0]!.alt
-                : ablauf.schritte[Math.max(aktiv, 0)]!.alt}
-            </p>
+      <div className="mt-14 flex flex-col gap-14 lg:flex-row lg:items-start lg:gap-20">
+        <div className="lg:sticky lg:top-32 lg:w-[44%]">
+          <div className="bogen relative aspect-[4/5] w-full bg-blush">
+            {ablauf.schritte.map((schritt, index) => (
+              <Image
+                key={schritt.nummer}
+                src={schritt.bild}
+                alt={schritt.alt}
+                fill
+                sizes="(min-width: 1024px) 44vw, 100vw"
+                className="object-cover"
+                style={{
+                  opacity: index === aktiv ? 1 : 0,
+                  filter: index === aktiv ? 'none' : 'blur(6px)',
+                  transition:
+                    'opacity 420ms var(--ease-in-out), filter 420ms var(--ease-in-out)',
+                }}
+                // Nur das sichtbare Bild zählt für Screenreader – sonst
+                // liest man drei Bildbeschreibungen hintereinander.
+                aria-hidden={index !== aktiv}
+              />
+            ))}
           </div>
         </div>
+
+        <ol className="flex flex-1 flex-col gap-16 lg:gap-28 lg:py-24">
+          {ablauf.schritte.map((schritt, index) => (
+            <li
+              key={schritt.nummer}
+              ref={(el) => {
+                schritteRef.current[index] = el;
+              }}
+              className="flex gap-6"
+              style={{
+                opacity: index === aktiv ? 1 : 0.45,
+                transition: 'opacity 300ms var(--ease-out)',
+              }}
+            >
+              <span aria-hidden="true" className="font-serif text-4xl leading-none text-akzent">
+                {schritt.nummer}
+              </span>
+              <div className="flex flex-col gap-3">
+                <h3 className="h-klein">{schritt.titel}</h3>
+                <p className="mass text-leise">{schritt.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

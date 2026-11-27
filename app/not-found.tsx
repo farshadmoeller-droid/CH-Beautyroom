@@ -19,7 +19,7 @@ export default function NichtGefunden() {
           <Link href="/" className="knopf knopf-voll">
             Zur Startseite
           </Link>
-          <Link href="/#termin" className="knopf knopf-linie">
+          <Link href="/#termin" className="knopf knopf-umriss">
             Termin anfragen
           </Link>
         </div>

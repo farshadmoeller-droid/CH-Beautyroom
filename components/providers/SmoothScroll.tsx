@@ -1,57 +1,54 @@
 'use client';
 
 import { useEffect } from 'react';
-import Lenis from 'lenis';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { useBewegungReduziert } from '@/lib/use-reduced-motion';
 
 /**
- * Weiches Scrollen mit Lenis, gekoppelt an GSAP.
+ * Weiches Scrollen.
  *
- * Wichtig ist die Reihenfolge: Lenis meldet jeden Scroll-Schritt an
- * ScrollTrigger, und GSAPs Ticker treibt Lenis an. Ohne diese Kopplung
- * laufen angeheftete Sektionen und das weiche Scrollen auseinander.
- *
- * Wer „Bewegung reduzieren“ eingeschaltet hat, bekommt gar kein Lenis –
- * dann scrollt der Browser ganz normal.
+ * Das ist keine Animation, sondern eine Gefühlsentscheidung: Der Sprung
+ * zwischen zwei Scroll-Positionen wird geglättet. Wer „Bewegung
+ * reduzieren" eingestellt hat, bekommt das native Scrollen – dort wäre
+ * eine Glättung genau die Art Bewegung, die stört.
  */
 export default function SmoothScroll() {
+  const reduziert = useBewegungReduziert();
+
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reduziert) return;
+    let aufraeumen = () => {};
+    let abgebrochen = false;
 
-    const lenis = new Lenis({
-      duration: 1.05,
-      easing: (t: number) => 1 - Math.pow(1 - t, 3),
-      smoothWheel: true,
-      // Auf Touchgeräten fühlt sich natives Scrollen besser an.
-      syncTouch: false,
-    });
+    (async () => {
+      const [{ default: Lenis }, { gsap, ScrollTrigger }] = await Promise.all([
+        import('lenis'),
+        import('@/lib/gsap'),
+      ]);
+      if (abgebrochen) return;
 
-    lenis.on('scroll', ScrollTrigger.update);
+      const lenis = new Lenis({ duration: 1.05, smoothWheel: true });
 
-    const takt = (zeit: number) => lenis.raf(zeit * 1000);
-    gsap.ticker.add(takt);
-    gsap.ticker.lagSmoothing(0);
+      // Lenis scrollt an `window.scrollY` vorbei. Ohne diese Kopplung
+      // rechnet ScrollTrigger mit veralteten Positionen und die
+      // scrollgebundenen Stellen laufen hinterher.
+      const beiScroll = () => ScrollTrigger.update();
+      lenis.on('scroll', beiScroll);
+      const takt = (zeit: number) => lenis.raf(zeit * 1000);
+      gsap.ticker.add(takt);
+      gsap.ticker.lagSmoothing(0);
 
-    // Anker-Links sollen weich scrollen statt zu springen.
-    const beiKlick = (e: MouseEvent) => {
-      const ziel = (e.target as HTMLElement | null)?.closest?.('a[href^="#"]');
-      if (!ziel) return;
-      const id = ziel.getAttribute('href');
-      if (!id || id === '#') return;
-      const element = document.querySelector(id);
-      if (!element) return;
-      e.preventDefault();
-      lenis.scrollTo(element as HTMLElement, { offset: -8 });
-    };
-
-    document.addEventListener('click', beiKlick);
+      aufraeumen = () => {
+        lenis.off('scroll', beiScroll);
+        gsap.ticker.remove(takt);
+        lenis.destroy();
+      };
+    })();
 
     return () => {
-      document.removeEventListener('click', beiKlick);
-      gsap.ticker.remove(takt);
-      lenis.destroy();
+      abgebrochen = true;
+      aufraeumen();
     };
-  }, []);
+  }, [reduziert]);
 
   return null;
 }

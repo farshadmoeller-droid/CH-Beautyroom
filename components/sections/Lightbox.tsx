@@ -2,130 +2,144 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@/components/ui/Icons';
+import type { GalerieBild } from '@/content/site';
 import BeforeAfter from '@/components/sections/BeforeAfter';
-import { useFokusFalle, useScrollSperre } from '@/lib/use-focus-trap';
-import { galerieKategorien, type GalerieBild } from '@/content/site';
 
+/**
+ * Großbild.
+ *
+ * Nach dem Muster für Dialoge: aus `scale(0.96)` und durchsichtig in
+ * 250 ms herein, der Hintergrund blendet gleichzeitig mit, damit beide
+ * als eine Fläche gelesen werden. Kein `scale(0)` – nichts in der
+ * Wirklichkeit entsteht aus dem Nichts.
+ *
+ * Anders als ein Menü hängt ein Dialog an keinem Auslöser, deshalb bleibt
+ * der Ursprung in der Mitte.
+ */
 type Props = {
   bilder: GalerieBild[];
-  index: number;
-  onSchliessen: () => void;
-  onWechsel: (neu: number) => void;
+  index: number | null;
+  schliessen: () => void;
+  wechseln: (index: number) => void;
 };
 
-export default function Lightbox({ bilder, index, onSchliessen, onWechsel }: Props) {
+export default function Lightbox({ bilder, index, schliessen, wechseln }: Props) {
+  const offen = index !== null;
+  const [sichtbar, setSichtbar] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [wischStart, setWischStart] = useState<number | null>(null);
+  const vorherFokus = useRef<HTMLElement | null>(null);
 
-  const bild = bilder[index];
-  const anzahl = bilder.length;
+  // Erst einhängen, dann im nächsten Bild sichtbar schalten – sonst
+  // startet der Übergang nicht.
+  useEffect(() => {
+    if (!offen) {
+      setSichtbar(false);
+      return;
+    }
+    const id = requestAnimationFrame(() => setSichtbar(true));
+    return () => cancelAnimationFrame(id);
+  }, [offen]);
 
-  const weiter = useCallback(() => onWechsel((index + 1) % anzahl), [index, anzahl, onWechsel]);
-  const zurueck = useCallback(() => onWechsel((index - 1 + anzahl) % anzahl), [index, anzahl, onWechsel]);
-
-  useScrollSperre(true);
-  useFokusFalle(dialogRef, true, onSchliessen);
+  const weiter = useCallback(
+    (richtung: number) => {
+      if (index === null) return;
+      wechseln((index + richtung + bilder.length) % bilder.length);
+    },
+    [index, bilder.length, wechseln],
+  );
 
   useEffect(() => {
-    function beiTaste(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        weiter();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        zurueck();
-      }
-    }
-    document.addEventListener('keydown', beiTaste);
-    return () => document.removeEventListener('keydown', beiTaste);
-  }, [weiter, zurueck]);
+    if (!offen) return;
+    vorherFokus.current = document.activeElement as HTMLElement | null;
+    const vorherOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
+    const behaelter = dialogRef.current;
+    behaelter?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
+
+    const beiTaste = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return schliessen();
+      if (e.key === 'ArrowRight') return weiter(1);
+      if (e.key === 'ArrowLeft') return weiter(-1);
+      if (e.key !== 'Tab' || !behaelter) return;
+      const ziele = Array.from(behaelter.querySelectorAll<HTMLElement>('button, input'));
+      if (ziele.length === 0) return;
+      const erstes = ziele[0]!;
+      const letztes = ziele[ziele.length - 1]!;
+      if (e.shiftKey && document.activeElement === erstes) {
+        e.preventDefault();
+        letztes.focus();
+      } else if (!e.shiftKey && document.activeElement === letztes) {
+        e.preventDefault();
+        erstes.focus();
+      }
+    };
+
+    document.addEventListener('keydown', beiTaste);
+    return () => {
+      document.removeEventListener('keydown', beiTaste);
+      document.body.style.overflow = vorherOverflow;
+      vorherFokus.current?.focus?.({ preventScroll: true });
+    };
+  }, [offen, schliessen, weiter]);
+
+  if (index === null) return null;
+  const bild = bilder[index];
   if (!bild) return null;
 
-  const kategorie = galerieKategorien.find((k) => k.id === bild.kategorie)?.label ?? '';
-  const hatVergleich = Boolean(bild.vorher);
+  const uebergang = `opacity var(--dauer-menue) var(--ease-out), transform var(--dauer-menue) var(--ease-out)`;
 
   return (
     <div
-      ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Galerie, Bild ${index + 1} von ${anzahl}`}
-      tabIndex={-1}
-      className="fixed inset-0 z-[60] flex flex-col bg-espresso/97"
-      onTouchStart={(e) => setWischStart(e.touches[0]?.clientX ?? null)}
-      onTouchEnd={(e) => {
-        if (wischStart === null) return;
-        const ende = e.changedTouches[0]?.clientX ?? wischStart;
-        const strecke = ende - wischStart;
-        if (Math.abs(strecke) > 50) {
-          if (strecke < 0) weiter();
-          else zurueck();
-        }
-        setWischStart(null);
-      }}
+      aria-label={bild.alt}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-10"
     >
-      <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-        <p className="text-[0.7rem] uppercase tracking-[0.2em] text-creme/60 tabular-nums">
-          {index + 1} / {anzahl}
-        </p>
-        <button
-          type="button"
-          onClick={onSchliessen}
-          className="flex h-11 w-11 items-center justify-center text-creme transition-opacity hover:opacity-70"
-        >
-          <span className="sr-only">Galerie schließen</span>
-          <CloseIcon className="h-6 w-6" />
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-label="Großbild schließen"
+        onClick={schliessen}
+        className="absolute inset-0 cursor-default bg-espresso/90"
+        style={{ opacity: sichtbar ? 1 : 0, transition: `opacity var(--dauer-menue) var(--ease-out)` }}
+      />
 
-      <div className="relative flex flex-1 items-center justify-center overflow-y-auto px-2 sm:px-16">
-        <button
-          type="button"
-          onClick={zurueck}
-          className="absolute left-1 z-10 flex h-12 w-12 items-center justify-center text-creme transition-opacity hover:opacity-70 sm:left-3"
-        >
-          <span className="sr-only">Vorheriges Bild</span>
-          <ChevronLeftIcon className="h-7 w-7" />
-        </button>
-
-        {hatVergleich ? (
-          <div className="w-full max-w-3xl py-4">
-            <BeforeAfter
-              vorher={bild.vorher!}
-              vorherAlt={bild.vorherAlt ?? 'Aufnahme vor der Behandlung'}
-              nachher={bild.src}
-              nachherAlt={bild.alt}
-              dunkel
-            />
-          </div>
+      <div
+        ref={dialogRef}
+        className="relative z-10 flex max-h-full w-full max-w-4xl flex-col gap-4"
+        style={{
+          opacity: sichtbar ? 1 : 0,
+          transform: sichtbar ? 'none' : 'scale(0.96)',
+          transition: uebergang,
+        }}
+      >
+        {bild.vorher ? (
+          <BeforeAfter
+            vorher={bild.vorher}
+            vorherAlt={bild.vorherAlt ?? 'Vorher'}
+            nachher={bild.src}
+            nachherAlt={bild.alt}
+          />
         ) : (
-          <div className="relative h-full w-full max-w-5xl">
-            <Image
-              key={bild.src}
-              src={bild.src}
-              alt={bild.alt}
-              fill
-              sizes="100vw"
-              className={`object-contain ${bild.kategorie === 'fineline' ? 'grayscale' : ''}`}
-            />
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-blush">
+            <Image src={bild.src} alt={bild.alt} fill sizes="90vw" className="object-contain" />
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={weiter}
-          className="absolute right-1 z-10 flex h-12 w-12 items-center justify-center text-creme transition-opacity hover:opacity-70 sm:right-3"
-        >
-          <span className="sr-only">Nächstes Bild</span>
-          <ChevronRightIcon className="h-7 w-7" />
-        </button>
-      </div>
-
-      <div className="px-4 pb-8 pt-4 text-center sm:px-6">
-        <p className="text-[0.6rem] uppercase tracking-[0.24em] text-creme/55">{kategorie}</p>
-        <p className="mx-auto mt-2 max-w-[55ch] font-serif text-lg text-creme">{bild.alt}</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-creme/80">{bild.alt}</p>
+          <div className="flex shrink-0 gap-2">
+            <button type="button" onClick={() => weiter(-1)} className="knopf knopf-hell" aria-label="Vorheriges Bild">
+              ←
+            </button>
+            <button type="button" onClick={() => weiter(1)} className="knopf knopf-hell" aria-label="Nächstes Bild">
+              →
+            </button>
+            <button type="button" onClick={schliessen} className="knopf knopf-hell">
+              Schließen
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

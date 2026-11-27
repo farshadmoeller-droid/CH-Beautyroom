@@ -1,60 +1,59 @@
 import Image from 'next/image';
-import Reveal from '@/components/ui/Reveal';
+import Enthuellen from '@/components/ui/Enthuellen';
 import { ueberMich } from '@/content/site';
 
+/**
+ * Über mich. Ein Abschnitt ohne eigene Bewegung außer dem Auftritt.
+ *
+ * Ein Auftritt pro Behälter: Bild und Text kommen als zwei Beats – das
+ * Porträt zuerst (es ist die Hauptsache), der Text kurz darauf. Die
+ * Merkmale darunter bekommen keinen eigenen Auftritt mehr, sie sind
+ * einfach da. Drei Ebenen Auftritt hintereinander lässt die Leserin
+ * warten, bis die Seite fertig vorgeführt hat.
+ */
 export default function About() {
   return (
-    <section id="ueber-mich" aria-labelledby="ueber-mich-titel" className="abschnitt bg-blush">
-      <div className="huelle">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
-          <Reveal className="lg:col-span-5">
-            <div className="bogen relative mx-auto aspect-5/7 w-full max-w-sm bg-creme lg:mx-0 lg:max-w-none">
-              <Image
-                src={ueberMich.portrait}
-                alt={ueberMich.portraitAlt}
-                fill
-                sizes="(min-width: 1024px) 38vw, 80vw"
-                className="object-cover"
-              />
-            </div>
-          </Reveal>
-
-          <div className="lg:col-span-6 lg:col-start-7">
-            <Reveal>
-              <p className="label">{ueberMich.label}</p>
-              <h2 id="ueber-mich-titel" className="h-gross mt-5 max-w-[14ch]">
-                {ueberMich.titel}
-              </h2>
-            </Reveal>
-
-            <Reveal delay={0.1}>
-              <div className="mass mt-8 flex flex-col gap-4 text-leise-stark">
-                {ueberMich.absaetze.map((absatz) => (
-                  <p key={absatz.slice(0, 40)}>{absatz}</p>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.15}>
-              <blockquote className="mt-12 border-l border-akzent-rand pl-6">
-                <p className="font-serif italic text-ink" style={{ fontSize: 'clamp(1.35rem, 2.8vw, 2.1rem)', lineHeight: 1.3 }}>
-                  „{ueberMich.zitat}“
-                </p>
-              </blockquote>
-            </Reveal>
-
-            <Reveal delay={0.2}>
-              <dl className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                {ueberMich.merkmale.map((merkmal) => (
-                  <div key={merkmal.titel} className="border-t border-ink/15 pt-4">
-                    <dt className="font-serif text-lg">{merkmal.titel}</dt>
-                    <dd className="mt-1.5 text-sm text-leise-stark">{merkmal.text}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
+    <section id="ueber-mich" aria-labelledby="ueber-mich-titel" className="huelle py-28 sm:py-36">
+      <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-20">
+        <Enthuellen className="lg:w-[42%]" stufe={0} weg={18}>
+          <div className="bogen relative aspect-[3/4] w-full bg-blush">
+            <Image
+              src={ueberMich.portrait}
+              alt={ueberMich.portraitAlt}
+              fill
+              sizes="(min-width: 1024px) 42vw, 100vw"
+              className="object-cover object-top"
+            />
           </div>
-        </div>
+        </Enthuellen>
+
+        <Enthuellen className="flex flex-1 flex-col gap-6" stufe={110} weg={14}>
+          <div>
+            <p className="label">{ueberMich.label}</p>
+            <h2 id="ueber-mich-titel" className="h-abschnitt mt-4">
+              {ueberMich.titel}
+            </h2>
+          </div>
+
+          {ueberMich.absaetze.map((absatz) => (
+            <p key={absatz} className="mass text-leise">
+              {absatz}
+            </p>
+          ))}
+
+          <blockquote className="border-l-2 border-akzent pl-6">
+            <p className="font-serif text-xl leading-snug sm:text-2xl">{ueberMich.zitat}</p>
+          </blockquote>
+
+          <dl className="mt-2 grid gap-6 sm:grid-cols-3">
+            {ueberMich.merkmale.map((merkmal) => (
+              <div key={merkmal.titel}>
+                <dt className="label">{merkmal.titel}</dt>
+                <dd className="mt-2 text-sm text-leise">{merkmal.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </Enthuellen>
       </div>
     </section>
   );

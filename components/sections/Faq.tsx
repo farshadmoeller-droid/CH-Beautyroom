@@ -1,78 +1,86 @@
 'use client';
 
-import { useId, useState } from 'react';
-import { PlusIcon } from '@/components/ui/Icons';
+import { useRef, useState } from 'react';
+import Enthuellen from '@/components/ui/Enthuellen';
 import { faq } from '@/content/site';
 
 /**
- * Barrierefreies Akkordeon: echte Buttons, aria-expanded und aria-controls,
- * vollständig mit der Tastatur bedienbar. Mehrere Antworten dürfen
- * gleichzeitig offen sein – beim Nachlesen ist das angenehmer.
+ * Fragen und Antworten.
+ *
+ * Das Aufklappen animiert `height` – die eine Stelle auf dieser Seite, an
+ * der das in Ordnung geht, weil es für „von null auf Inhaltshöhe" keine
+ * Entsprechung mit `transform` gibt. Dafür bleibt es kurz: 200 ms. Eine
+ * Eigenschaft, die in jedem Bild das Layout neu rechnen lässt, darf nicht
+ * lange laufen.
+ *
+ * Die Zielhöhe wird gemessen, nicht auf `auto` animiert – `auto` lässt
+ * sich nicht interpolieren.
  */
 export default function Faq() {
-  const basisId = useId();
-  const [offen, setOffen] = useState<number[]>([]);
-
-  function umschalten(index: number) {
-    setOffen((aktuell) =>
-      aktuell.includes(index) ? aktuell.filter((i) => i !== index) : [...aktuell, index],
-    );
-  }
+  const [offen, setOffen] = useState<number | null>(0);
+  const inhalte = useRef<(HTMLDivElement | null)[]>([]);
 
   return (
-    <section id="faq" aria-labelledby="faq-titel" className="abschnitt bg-blush">
-      <div className="huelle">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-4">
-            <p className="label">Häufige Fragen</p>
-            <h2 id="faq-titel" className="h-gross mt-5 max-w-[10ch]">
-              Gut <em className="italic">zu wissen</em>
-            </h2>
-            <p className="mass mt-5 text-leise-stark">
-              Steht deine Frage nicht dabei? Schreib mir einfach – ich antworte dir persönlich.
-            </p>
-          </div>
+    <section id="fragen" aria-labelledby="fragen-titel" className="huelle py-28 sm:py-36">
+      <Enthuellen stufe={0} weg={16}>
+        <p className="label">Fragen</p>
+        <h2 id="fragen-titel" className="h-abschnitt mt-4">
+          Gut zu wissen
+        </h2>
+      </Enthuellen>
 
-          <div className="lg:col-span-8">
-            <div className="border-t border-ink/15">
-              {faq.map((eintrag, index) => {
-                const istOffen = offen.includes(index);
-                const buttonId = `${basisId}-b-${index}`;
-                const panelId = `${basisId}-p-${index}`;
+      <ul className="mx-auto mt-12 max-w-3xl">
+        {faq.map((eintrag, index) => {
+          const ist = offen === index;
+          const hoehe = ist ? (inhalte.current[index]?.scrollHeight ?? 0) : 0;
+          return (
+            <li key={eintrag.frage} className="border-b border-akzent-rand/40">
+              <h3>
+                <button
+                  type="button"
+                  onClick={() => setOffen(ist ? null : index)}
+                  aria-expanded={ist}
+                  aria-controls={`antwort-${index}`}
+                  className="flex w-full items-center justify-between gap-6 py-6 text-left"
+                >
+                  <span className="text-lg">{eintrag.frage}</span>
+                  <span
+                    aria-hidden="true"
+                    className="relative block h-5 w-5 shrink-0"
+                    style={{
+                      transform: ist ? 'rotate(45deg)' : 'none',
+                      transition: 'transform var(--dauer-klein) var(--ease-out)',
+                    }}
+                  >
+                    <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-akzent-text" />
+                    <span className="absolute left-0 top-1/2 h-px w-5 -translate-y-1/2 bg-akzent-text" />
+                  </span>
+                </button>
+              </h3>
 
-                return (
-                  <div key={eintrag.frage} className="border-b border-ink/15">
-                    <h3>
-                      <button
-                        type="button"
-                        id={buttonId}
-                        aria-expanded={istOffen}
-                        aria-controls={panelId}
-                        onClick={() => umschalten(index)}
-                        className="flex w-full items-start justify-between gap-6 py-5 text-left"
-                      >
-                        <span className="font-serif text-lg leading-snug sm:text-xl">{eintrag.frage}</span>
-                        <span
-                          aria-hidden="true"
-                          className={`mt-1 shrink-0 text-akzent-text transition-transform duration-300 ${
-                            istOffen ? 'rotate-45' : ''
-                          }`}
-                        >
-                          <PlusIcon className="h-5 w-5" />
-                        </span>
-                      </button>
-                    </h3>
-
-                    <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!istOffen}>
-                      <p className="mass pb-7 pr-6 text-leise-stark">{eintrag.antwort}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+              <div
+                id={`antwort-${index}`}
+                role="region"
+                className="overflow-hidden"
+                style={{
+                  height: hoehe,
+                  opacity: ist ? 1 : 0,
+                  transition: 'height var(--dauer-klein) var(--ease-out), opacity var(--dauer-klein) var(--ease-out)',
+                }}
+              >
+                <div
+                  ref={(el) => {
+                    inhalte.current[index] = el;
+                  }}
+                  className="pb-6"
+                >
+                  <p className="mass text-leise">{eintrag.antwort}</p>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

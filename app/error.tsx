@@ -31,7 +31,7 @@ export default function Fehlerseite({
           <button type="button" onClick={reset} className="knopf knopf-voll">
             Erneut versuchen
           </button>
-          <Link href="/" className="knopf knopf-linie">
+          <Link href="/" className="knopf knopf-umriss">
             Zur Startseite
           </Link>
         </div>

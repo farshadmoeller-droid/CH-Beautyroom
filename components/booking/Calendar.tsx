@@ -143,7 +143,7 @@ export default function Calendar({ wert, onAuswahl, beschriebenVon }: Props) {
         onKeyDown={beiTaste}
         className="mt-4"
       >
-        <div role="row" className="grid grid-cols-7 gap-1">
+        <div role="row" className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {wochentageKurz.map((tag) => (
             <div key={tag} role="columnheader" className="pb-2 text-center text-[0.62rem] uppercase tracking-[0.12em] text-leise-stark">
               {tag}
@@ -152,7 +152,7 @@ export default function Calendar({ wert, onAuswahl, beschriebenVon }: Props) {
         </div>
 
         {Array.from({ length: Math.ceil(felder.length / 7) }, (_, zeile) => (
-          <div key={zeile} role="row" className="grid grid-cols-7 gap-1">
+          <div key={zeile} role="row" className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {felder.slice(zeile * 7, zeile * 7 + 7).map((feld, spalte) => {
               if (!feld) return <div key={`leer-${zeile}-${spalte}`} role="gridcell" aria-hidden="true" />;
 
@@ -177,7 +177,7 @@ export default function Calendar({ wert, onAuswahl, beschriebenVon }: Props) {
                   tabIndex={feld.iso === fokusTag ? 0 : -1}
                   onFocus={() => setFokusTag(feld.iso)}
                   onClick={() => status.frei && onAuswahl(feld.iso)}
-                  className={`flex aspect-square min-h-11 items-center justify-center rounded-lg border text-sm transition-colors duration-200 ${
+                  className={`flex min-h-11 items-center justify-center rounded-lg border text-sm transition-colors duration-200 ${
                     gewaehlt
                       ? 'border-ink bg-ink text-creme'
                       : status.frei

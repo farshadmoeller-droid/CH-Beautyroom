@@ -1,127 +1,113 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollTrigger, bewegungReduziert } from '@/lib/gsap';
+import { useEffect, useRef, useState } from 'react';
 import { statement } from '@/content/site';
+import { useBewegungReduziert } from '@/lib/use-reduced-motion';
 
 /**
- * Ein langer Satz in Serif, durch den beim Scrollen die Einfärbung wandert:
- * Die Wörter wechseln nacheinander von gedämpftem Grau auf Schwarz.
- * Zwischen den Wörtern sitzen kleine runde Bilder.
+ * Ein Satz, durch den beim Scrollen die Einfärbung wandert.
+ *
+ * Einer von genau zwei Orten auf dieser Seite, an denen GSAP eingesetzt
+ * wird: Der Wert hängt am Scroll-Fortschritt und muss sich beim
+ * Zurückscrollen umkehren lassen. Ein CSS-Übergang kann das nicht.
+ *
+ * Animiert wird `color` – die einzige Stelle, an der bewusst keine
+ * Transform-Eigenschaft läuft, weil sich eine Einfärbung nicht anders
+ * ausdrücken lässt. Farbe kostet nur Paint, kein Layout.
  */
 export default function Statement() {
-  const sektionRef = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const reduziert = useBewegungReduziert();
   const [fortschritt, setFortschritt] = useState(0);
-  const [reduziert, setReduziert] = useState(false);
-
-  /**
-   * Der Satz wird in eine flache Liste zerlegt, damit jedes Wort einzeln
-   * eingefärbt werden kann. Bilder zählen dabei wie ein Wort.
-   */
-  const bausteine = useMemo(() => {
-    const liste: ({ art: 'wort'; inhalt: string; kursiv: boolean } | { art: 'bild'; src: string; alt: string })[] = [];
-    for (const teil of statement.teile) {
-      if (teil.art === 'bild') {
-        liste.push({ art: 'bild', src: teil.src, alt: teil.alt });
-      } else {
-        for (const wort of teil.inhalt.split(' ')) {
-          liste.push({ art: 'wort', inhalt: wort, kursiv: teil.art === 'kursiv' });
-        }
-      }
-    }
-    return liste;
-  }, []);
 
   useEffect(() => {
-    const sektion = sektionRef.current;
-    if (!sektion) return;
-
-    if (bewegungReduziert()) {
-      setReduziert(true);
+    // Weniger Bewegung: Der Satz steht fertig eingefärbt da.
+    if (reduziert) {
       setFortschritt(1);
       return;
     }
+    const element = ref.current;
+    if (!element) return;
 
-    const ausloeser = ScrollTrigger.create({
-      trigger: sektion,
-      start: 'top 75%',
-      end: 'bottom 70%',
-      onUpdate: (selbst) => setFortschritt(selbst.progress),
-    });
+    let aufraeumen = () => {};
+    let abgebrochen = false;
+    (async () => {
+      const { ScrollTrigger } = await import('@/lib/gsap');
+      if (abgebrochen) return;
+      const ausloeser = ScrollTrigger.create({
+        trigger: element,
+        start: 'top 72%',
+        end: 'bottom 60%',
+        scrub: true,
+        onUpdate: (selbst) => setFortschritt(selbst.progress),
+      });
+      aufraeumen = () => ausloeser.kill();
+    })();
 
-    return () => ausloeser.kill();
-  }, []);
+    return () => {
+      abgebrochen = true;
+      aufraeumen();
+    };
+  }, [reduziert]);
+
+  /** Ein Wort oder ein kleines rundes Bild zwischen zwei Wörtern. */
+  type Baustein =
+    | { art: 'bild'; src: string; alt: string; schluessel: string }
+    | { art: 'text' | 'kursiv'; wort: string; schluessel: string };
+
+  // Wortweise Schwelle: Jedes Wort bekommt seinen Punkt auf der Strecke.
+  const woerter: Baustein[] = statement.teile.flatMap((teil, teilIndex): Baustein[] =>
+    teil.art === 'bild'
+      ? [{ art: 'bild', src: teil.src, alt: teil.alt, schluessel: `b${teilIndex}` }]
+      : teil.inhalt.split(' ').map((wort, i) => ({
+          art: teil.art,
+          wort,
+          schluessel: `${teilIndex}-${i}`,
+        })),
+  );
+  const anzahl = woerter.length;
 
   return (
-    <section ref={sektionRef} aria-labelledby="statement-titel" className="abschnitt relative overflow-hidden bg-creme">
-      <div className="huelle relative">
-        <p className="label">{statement.label}</p>
-
-        {/* Schwebende Marken – rein dekorativ. */}
-        {statement.schweber.map((marke) => (
-          <span
-            key={marke.text}
-            aria-hidden="true"
-            className="pointer-events-none absolute hidden rounded-full border border-akzent-rand/40 px-3 py-1 text-[0.6rem] uppercase tracking-[0.2em] text-akzent-text lg:block"
-            style={{
-              left: `${marke.x}%`,
-              top: `${marke.y}%`,
-              opacity: reduziert ? 0.9 : Math.min(1, Math.max(0, fortschritt * 2.2 - 0.2)),
-              transition: 'opacity 600ms var(--ease-ruhig)',
-            }}
-          >
-            {marke.text}
-          </span>
-        ))}
-
-        <h2
-          id="statement-titel"
-          className="mt-10 max-w-[18ch] font-serif"
-          style={{ fontSize: 'clamp(1.9rem, 5.2vw, 4.25rem)', lineHeight: 1.18 }}
-        >
-          {bausteine.map((baustein, index) => {
-            // Jedes Wort bekommt seinen eigenen Punkt auf der Zeitachse.
-            const schwelle = index / Math.max(bausteine.length - 1, 1);
-            const aktiv = reduziert || fortschritt >= schwelle * 0.85;
-
-            if (baustein.art === 'bild') {
-              return (
-                <span
-                  key={`bild-${index}`}
-                  className="relative mx-[0.18em] inline-block h-[0.85em] w-[1.5em] overflow-hidden rounded-full align-middle"
-                  style={{
-                    opacity: aktiv ? 1 : 0.35,
-                    transition: 'opacity 500ms var(--ease-ruhig)',
-                  }}
-                >
-                  <Image
-                    src={baustein.src}
-                    alt={baustein.alt}
-                    fill
-                    sizes="120px"
-                    className="object-cover"
-                  />
-                </span>
-              );
-            }
-
+    <section ref={ref} className="huelle py-28 sm:py-36 lg:py-44" aria-labelledby="aussage-titel">
+      <p className="label text-center">{statement.label}</p>
+      <p id="aussage-titel" className="h-gross mx-auto mt-8 max-w-[22ch] text-center">
+        {woerter.map((eintrag, index) => {
+          if (eintrag.art === 'bild') {
             return (
               <span
-                key={`wort-${index}`}
-                className={baustein.kursiv ? 'italic' : undefined}
-                style={{
-                  color: aktiv ? 'var(--color-ink)' : 'var(--color-leise)',
-                  opacity: aktiv ? 1 : 0.45,
-                  transition: 'color 500ms var(--ease-ruhig), opacity 500ms var(--ease-ruhig)',
-                }}
+                key={eintrag.schluessel}
+                className="mx-2 inline-block h-[0.8em] w-[1.6em] translate-y-[0.06em] overflow-hidden rounded-full align-middle"
               >
-                {baustein.inhalt}{' '}
+                <Image
+                  src={eintrag.src}
+                  alt={eintrag.alt}
+                  width={160}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
               </span>
             );
-          })}
-        </h2>
-      </div>
+          }
+          // Etwas Vorlauf, damit das erste Wort schon gefärbt ist, wenn
+          // der Satz mittig steht.
+          const schwelle = (index / anzahl) * 0.85;
+          const an = fortschritt >= schwelle;
+          return (
+            <span
+              key={eintrag.schluessel}
+              className={eintrag.art === 'kursiv' ? 'italic' : undefined}
+              style={{
+                color: an ? 'var(--color-ink)' : 'var(--color-leise)',
+                opacity: an ? 1 : 0.45,
+                transition: 'color 320ms var(--ease-out), opacity 320ms var(--ease-out)',
+              }}
+            >
+              {eintrag.wort}{' '}
+            </span>
+          );
+        })}
+      </p>
     </section>
   );
 }

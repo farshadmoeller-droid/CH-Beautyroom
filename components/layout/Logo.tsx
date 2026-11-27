@@ -1,24 +1,28 @@
 import { business } from '@/content/site';
 
-type LogoProps = {
-  /** Auf dunklem Grund wird die helle Variante gesetzt. */
-  hell?: boolean;
-  className?: string;
-};
-
-/**
- * Rein typografisches Logo. Sobald eine SVG-Datei vorliegt, wird nur diese
- * Komponente ausgetauscht – alle Aufrufe bleiben unverändert.
- */
-export default function Logo({ hell = false, className = '' }: LogoProps) {
+/** Wortmarke. Die Helligkeit wechselt, wenn sie über dem Foto steht. */
+export default function Logo({ hell = false }: { hell?: boolean }) {
   return (
-    <span className={`flex flex-col leading-none ${hell ? 'text-creme' : 'text-ink'} ${className}`}>
-      <span className="font-serif text-xl tracking-tight sm:text-2xl">{business.name}</span>
+    <span className="flex flex-col leading-none">
       <span
-        className={`mt-1 text-[0.5rem] uppercase ${hell ? 'text-creme/70' : 'text-leise'}`}
-        style={{ letterSpacing: '0.3em' }}
+        className="font-serif text-xl sm:text-[1.4rem]"
+        style={{
+          color: hell ? 'var(--color-creme)' : 'var(--color-ink)',
+          transition: 'color var(--dauer-menue) ease',
+        }}
       >
-        Ramsloh
+        {business.name}
+      </span>
+      <span
+        className="label mt-1"
+        style={{
+          // Über dem Foto voll deckend: Bei 70 % Deckkraft fiel diese
+          // Zeile auf 4,3:1 und damit unter die Grenze für kleine Schrift.
+          color: hell ? 'var(--color-creme)' : 'var(--color-leise)',
+          transition: 'color var(--dauer-menue) ease',
+        }}
+      >
+        {business.ort}
       </span>
     </span>
   );

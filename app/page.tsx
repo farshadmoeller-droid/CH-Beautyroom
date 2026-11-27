@@ -1,4 +1,4 @@
-import HeroSequence from '@/components/hero/HeroSequence';
+import Hero from '@/components/hero/Hero';
 import Statement from '@/components/sections/Statement';
 import Services from '@/components/sections/Services';
 import Process from '@/components/sections/Process';
@@ -14,7 +14,7 @@ export const dynamic = 'force-static';
 export default function Startseite() {
   return (
     <>
-      <HeroSequence />
+      <Hero />
       <Statement />
       <Services />
       <Process />
