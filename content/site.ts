@@ -307,27 +307,26 @@ export const leistungen: Leistung[] = [
 export const ablauf = {
   label: 'So arbeite ich',
   titel: 'Drei Schritte, kein Durchlauf',
+  /*
+   *  Ohne Bilder. Für Beratung, Behandlung und Pflege gibt es keine
+   *  echten Fotos, und ein Homestudio inszeniert sein Beratungsgespräch
+   *  nicht. Der Abschnitt steht deshalb rein typografisch.
+   */
   schritte: [
     {
       nummer: '01',
       titel: 'Beratung',
       text: 'Wir schauen uns deine Augenform, deinen Naturbestand und deinen Alltag an. Daraus ergibt sich, was zu dir passt – manchmal auch, dass weniger besser ist.',
-      bild: '/process/beratung.webp',
-      alt: 'Beratungsgespräch im Studio an einem hellen Tisch',
     },
     {
       nummer: '02',
       titel: 'Behandlung',
       text: 'Du liegst, ich arbeite. Immer nur eine Kundin im Studio, keine Tür, die nebenbei aufgeht. Viele schlafen dabei ein – genau so darf es sein.',
-      bild: '/process/behandlung.webp',
-      alt: 'Behandlung im Liegen, ruhige Studioatmosphäre',
     },
     {
       nummer: '03',
       titel: 'Pflege',
       text: 'Du bekommst konkrete Hinweise mit, damit das Ergebnis lange hält. Und wenn etwas unklar ist, schreibst du mir einfach.',
-      bild: '/process/pflege.webp',
-      alt: 'Pflegeprodukte und Notizkarte auf hellem Leinen',
     },
   ],
 } as const;

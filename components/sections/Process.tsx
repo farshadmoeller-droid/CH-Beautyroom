@@ -1,103 +1,58 @@
-'use client';
-
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
 import Enthuellen from '@/components/ui/Enthuellen';
 import { ablauf } from '@/content/site';
 
 /**
- * Drei Schritte, daneben ein Bild, das mitwechselt.
+ * Drei Schritte, kein Durchlauf.
  *
- * Der Wechsel ist eine Überblendung, kein Scroll-Wert – deshalb reicht
- * ein IntersectionObserver und ein CSS-Übergang auf `opacity`. Kein GSAP.
+ * Dieser Abschnitt hatte eine große Bogenfläche, in der beim Scrollen ein
+ * Bild zum jeweils aktiven Schritt überblendete. Zwei Gründe, warum das
+ * weg ist:
  *
- * Die beiden Bilder liegen übereinander. Weil zwei Fotos während der
- * Überblendung kurz als zwei Dinge gelesen werden, bekommt das
- * abtretende Bild zusätzlich eine leichte Unschärfe: Dadurch
- * verschmelzen sie zu einer Bewegung statt zu einem Tausch.
+ * 1. Für „Beratung", „Behandlung" und „Pflege" gibt es keine echten
+ *    Fotos, und es wird vermutlich auch keine geben – ein Homestudio
+ *    inszeniert sein Beratungsgespräch nicht. Übrig blieb eine leere
+ *    Fläche von 493 × 616 Pixeln, fast ein Drittel des Abschnitts.
+ * 2. Die beiden nicht aktiven Schritte waren auf 45 % Deckkraft gesetzt,
+ *    damit die Überblendung einen Bezug hat. Gemessen standen sie damit
+ *    bei 1,58:1 – unter jeder Lesbarkeitsgrenze. Eine Bewegung, die Text
+ *    unlesbar macht, verliert gegen den Text.
+ *
+ * Geblieben ist eine ruhige Dreiteilung: große Ziffer, Name, Satz, durch
+ * Haarlinien getrennt. Nichts bewegt sich außer dem einen Auftritt, und
+ * alle drei Schritte sind gleich gut lesbar – es gibt keinen „aktiven",
+ * weil es nichts gibt, worauf er sich beziehen würde.
  */
 export default function Process() {
-  const [aktiv, setAktiv] = useState(0);
-  const schritteRef = useRef<(HTMLLIElement | null)[]>([]);
-
-  useEffect(() => {
-    const elemente = schritteRef.current.filter((e): e is HTMLLIElement => e !== null);
-    if (elemente.length === 0 || typeof IntersectionObserver === 'undefined') return;
-
-    const beobachter = new IntersectionObserver(
-      (eintraege) => {
-        for (const eintrag of eintraege) {
-          if (!eintrag.isIntersecting) continue;
-          const index = elemente.indexOf(eintrag.target as HTMLLIElement);
-          if (index >= 0) setAktiv(index);
-        }
-      },
-      // Das mittlere Drittel des Fensters entscheidet, welcher Schritt gilt.
-      { rootMargin: '-35% 0px -45% 0px', threshold: 0 },
-    );
-
-    for (const e of elemente) beobachter.observe(e);
-    return () => beobachter.disconnect();
-  }, []);
-
   return (
-    <section id="ablauf" aria-labelledby="ablauf-titel" className="huelle py-28 sm:py-36">
-      <Enthuellen stufe={0} weg={16}>
+    <section id="ablauf" aria-labelledby="ablauf-titel" className="huelle py-24 scroll-mt-24 sm:py-32">
+      <Enthuellen className="max-w-2xl" stufe={0} weg={16}>
         <p className="label">{ablauf.label}</p>
         <h2 id="ablauf-titel" className="h-abschnitt mt-4">
           {ablauf.titel}
         </h2>
       </Enthuellen>
 
-      <div className="mt-14 flex flex-col gap-14 lg:flex-row lg:items-start lg:gap-20">
-        <div className="lg:sticky lg:top-32 lg:w-[44%]">
-          <div className="bogen relative aspect-[4/5] w-full bg-blush">
-            {ablauf.schritte.map((schritt, index) => (
-              <Image
-                key={schritt.nummer}
-                src={schritt.bild}
-                alt={schritt.alt}
-                fill
-                sizes="(min-width: 1024px) 44vw, 100vw"
-                className="object-cover"
-                style={{
-                  opacity: index === aktiv ? 1 : 0,
-                  filter: index === aktiv ? 'none' : 'blur(6px)',
-                  transition:
-                    'opacity 420ms var(--ease-in-out), filter 420ms var(--ease-in-out)',
-                }}
-                // Nur das sichtbare Bild zählt für Screenreader – sonst
-                // liest man drei Bildbeschreibungen hintereinander.
-                aria-hidden={index !== aktiv}
-              />
-            ))}
-          </div>
-        </div>
-
-        <ol className="flex flex-1 flex-col gap-16 lg:gap-28 lg:py-24">
-          {ablauf.schritte.map((schritt, index) => (
-            <li
-              key={schritt.nummer}
-              ref={(el) => {
-                schritteRef.current[index] = el;
-              }}
-              className="flex gap-6"
-              style={{
-                opacity: index === aktiv ? 1 : 0.45,
-                transition: 'opacity 300ms var(--ease-out)',
-              }}
-            >
-              <span aria-hidden="true" className="font-serif text-4xl leading-none text-akzent">
-                {schritt.nummer}
-              </span>
-              <div className="flex flex-col gap-3">
-                <h3 className="h-klein">{schritt.titel}</h3>
-                <p className="mass text-leise">{schritt.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <Enthuellen
+        as="ol"
+        stufe={110}
+        weg={14}
+        className="mt-14 grid border-t border-akzent-rand/30 lg:grid-cols-3"
+      >
+        {ablauf.schritte.map((schritt, index) => (
+          <li
+            key={schritt.nummer}
+            className={`flex flex-col gap-4 border-akzent-rand/25 py-10 lg:py-12 ${
+              index > 0 ? 'border-t lg:border-l lg:border-t-0 lg:pl-12' : ''
+            } ${index < ablauf.schritte.length - 1 ? 'lg:pr-12' : ''}`}
+          >
+            <span aria-hidden="true" className="font-serif text-5xl leading-none text-akzent-text">
+              {schritt.nummer}
+            </span>
+            <h3 className="h-klein">{schritt.titel}</h3>
+            <p className="text-leise">{schritt.text}</p>
+          </li>
+        ))}
+      </Enthuellen>
     </section>
   );
 }
