@@ -2,14 +2,33 @@
  * Erzeugt neutrale Platzhalterbilder, damit die Seite sofort läuft.
  *
  * Es sind bewusst einfarbige Flächen mit Beschriftung – keine Stockfotos
- * von Personen. Sobald echte Bilder da sind, einfach überschreiben.
+ * von Personen.
  *
  *   npm run platzhalter
+ *
+ * WICHTIG: Vorhandene Dateien werden übersprungen. Das Skript hat einmal
+ * sämtliche echten Fotos überschrieben, weil es ohne Rückfrage alles neu
+ * erzeugt hat. Wer wirklich alles ersetzen will, hängt --alles an:
+ *
+ *   npm run platzhalter -- --alles
  */
 
 import sharp from 'sharp';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, access } from 'node:fs/promises';
 import path from 'node:path';
+
+/** Mit --alles wird auch überschrieben, was schon da ist. */
+const ALLES_NEU = process.argv.includes('--alles');
+
+/** Gibt es die Datei schon? */
+async function vorhanden(ziel) {
+  try {
+    await access(ziel);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const WURZEL = 'public';
 
@@ -90,7 +109,15 @@ function sequenzFrame({ breite, hoehe, nummer, gesamt }) {
   </svg>`);
 }
 
+let uebersprungen = 0;
+
 async function schreibe(svg, zielPfad, qualitaet = 76) {
+  // Schutz vor dem Unfall, der dieses Skript einmal teuer gemacht hat:
+  // Was schon da ist, ist vermutlich ein echtes Foto und bleibt liegen.
+  if (!ALLES_NEU && (await vorhanden(zielPfad))) {
+    uebersprungen++;
+    return;
+  }
   await mkdir(path.dirname(zielPfad), { recursive: true });
   const bild = sharp(svg);
   await (zielPfad.endsWith('.jpg')
@@ -203,3 +230,10 @@ await sequenz();
 await einzelne();
 await galerie();
 console.log('Fertig. Echte Bilder einfach gleichnamig überschreiben.');
+
+if (uebersprungen > 0) {
+  console.log(
+    `${uebersprungen} vorhandene Dateien unangetastet gelassen. ` +
+      'Mit --alles würden auch sie überschrieben.',
+  );
+}
