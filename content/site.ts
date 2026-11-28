@@ -64,6 +64,12 @@ export const business = {
   /** Nur Frauen – steht an mehreren Stellen sichtbar auf der Seite. */
   nurFuerFrauen: true,
 
+  /**
+   * Kurzer Hinweis unter der Marke. Steht in der Fußzeile und im Menü
+   * auf dem Telefon – deshalb hier und nicht zweimal im Markup.
+   */
+  kurzsatz: 'Termine nach Vereinbarung, immer vormittags und ausschließlich für Frauen.',
+
   geo: { lat: 53.0975, lng: 7.7469 },
 
   einzugsgebiet: [

@@ -22,8 +22,7 @@ export default function Footer() {
             className="h-auto w-[150px]"
           />
           <p className="mass mt-4 text-creme/70">
-            Homestudio in {business.plz} {business.ort}, {business.gemeinde}. Termine nur nach
-            Vereinbarung, ausschließlich vormittags und ausschließlich für Frauen.
+            Homestudio in {business.plz} {business.ort}, {business.gemeinde}. {business.kurzsatz}
           </p>
         </div>
 

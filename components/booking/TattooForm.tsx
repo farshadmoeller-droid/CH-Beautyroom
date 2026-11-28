@@ -97,7 +97,7 @@ export default function TattooForm() {
       <p className="mass mb-7 text-sm text-leise-stark">
         Jedes Tattoo ist unterschiedlich aufwendig, deshalb gibt es hier keinen Kalender. Erzähl mir
         zuerst von deiner Idee – den passenden Termin finden wir dann gemeinsam. Ich tätowiere
-        ausschließlich Frauen und ausschließlich ab 18 Jahren.
+        ausschließlich Frauen, und erst ab 18 Jahren.
       </p>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

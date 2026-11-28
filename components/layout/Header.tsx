@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Logo from '@/components/layout/Logo';
-import { navigation } from '@/content/site';
+import { business, navigation } from '@/content/site';
 
 /**
  * Kopfzeile.
@@ -185,7 +185,7 @@ export default function Header() {
           </Link>
 
           <p className="mt-8 text-sm text-leise">
-            Homestudio in 26683 Ramsloh. Termine nur nach Vereinbarung, ausschließlich vormittags.
+            Homestudio in {business.plz} {business.ort}. {business.kurzsatz}
           </p>
         </nav>
       </div>
