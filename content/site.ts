@@ -216,7 +216,7 @@ export const statement = {
     { art: 'bild', src: '/statement/pille-1.webp', alt: 'Nahaufnahme einer Wimpernverlängerung' },
     { art: 'kursiv', inhalt: 'natürliche' },
     { art: 'text', inhalt: 'Schönheit – sanft, präzise und mit' },
-    { art: 'bild', src: '/statement/pille-2.webp', alt: 'Hand beim Setzen einer feinen Tattoolinie' },
+    { art: 'bild', src: '/statement/pille-2.webp', alt: 'Nahaufnahme eines Fineline-Schriftzugs auf der Haut' },
     { art: 'text', inhalt: 'viel Liebe zum' },
     { art: 'kursiv', inhalt: 'Detail.' },
   ],
@@ -302,7 +302,7 @@ export const leistungen: Leistung[] = [
       'Ausschließlich ab 18 Jahren',
     ],
     bild: '/services/fineline.webp',
-    alt: 'Feines Fineline-Tattoo mit floralem Motiv am Unterarm',
+    alt: 'Feiner Schriftzug als Fineline-Tattoo, längs über den Unterarm gesetzt',
     imFormular: false,
     ueberTattooFormular: true,
   },
@@ -403,15 +403,45 @@ export const galerie: GalerieBild[] = [
     format: 'quadrat',
   },
 
-  /* TODO: Fineline-Arbeiten – hier fehlen noch echte Fotos. */
-  { src: '/gallery/fineline-01.webp', alt: 'Floraler Zweig als Fineline-Tattoo am Unterarm', kategorie: 'fineline', format: 'hoch' },
-  { src: '/gallery/fineline-02.webp', alt: 'Mandala in feiner Linienführung', kategorie: 'fineline', format: 'quadrat' },
-  { src: '/gallery/fineline-03.webp', alt: 'Geburtsblume am Schlüsselbein', kategorie: 'fineline', format: 'hoch' },
-  { src: '/gallery/fineline-04.webp', alt: 'Jahreszahlen in feiner Schrift als Familien-Tattoo', kategorie: 'fineline', format: 'quer' },
-  { src: '/gallery/fineline-05.webp', alt: 'Feines Lettering an der Innenseite des Oberarms', kategorie: 'fineline', format: 'quadrat' },
-  { src: '/gallery/fineline-06.webp', alt: 'Kleines Ornament am Handgelenk', kategorie: 'fineline', format: 'hoch' },
-  { src: '/gallery/fineline-07.webp', alt: 'Blumen-Sleeve in feiner Linie über den Unterarm', kategorie: 'fineline', format: 'hoch' },
-  { src: '/gallery/fineline-08.webp', alt: 'Lotusblüte als Fineline-Tattoo', kategorie: 'fineline', format: 'quer' },
+  /*
+   *  Fineline-Arbeiten. Warmes Schwarzweiß, damit die feine Linie gegen
+   *  die Haut steht – bei drei der fünf Vorlagen war das ohnehin so.
+   *
+   *  Die Beschreibungen nennen bewusst keine Namen, Initialen oder Daten,
+   *  obwohl sie auf den Fotos zu sehen sind. Was im Alt-Text steht, ist
+   *  maschinenlesbar und wird durchsuchbar – das sind Angaben über
+   *  Menschen, die nie gefragt wurden.
+   */
+  {
+    src: '/gallery/fineline-01.webp',
+    alt: 'Zwei Vornamen in feiner Schreibschrift, verbunden durch ein kleines Herz, auf dem Unterarm',
+    kategorie: 'fineline',
+    format: 'quer',
+  },
+  {
+    src: '/gallery/fineline-02.webp',
+    alt: 'Englischer Schriftzug in feiner Schreibschrift, längs über den Unterarm gesetzt',
+    kategorie: 'fineline',
+    format: 'hoch',
+  },
+  {
+    src: '/gallery/fineline-03.webp',
+    alt: 'Kurzer Schriftzug längs am Handgelenk, feine Schreibschrift',
+    kategorie: 'fineline',
+    format: 'hoch',
+  },
+  {
+    src: '/gallery/fineline-04.webp',
+    alt: 'Vier Zahlenpaare in feiner Serifenschrift auf dem Unterarm',
+    kategorie: 'fineline',
+    format: 'quer',
+  },
+  {
+    src: '/gallery/fineline-05.webp',
+    alt: 'Zwei Initialen mit kleinen Herzen, senkrecht untereinander am Unterarm',
+    kategorie: 'fineline',
+    format: 'quadrat',
+  },
 ];
 
 /* ──────────────────────────────────────────────────────── 8 · Über mich */
